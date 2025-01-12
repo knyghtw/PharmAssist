@@ -14,50 +14,63 @@
   } from "flowbite-svelte";
   import { PlusOutline, BellSolid, EyeSolid } from "flowbite-svelte-icons";
 
-  let items = [
+  let searchTermBarang = "";
+  let searchTermStok = "";
+
+  let items_barang = [
     {
-      id: 1,
-      nama: "Paracetamol 500mg",
+      id_obat: 1,
+      nama_obat: "Paracetamol 500mg",
+      harga_beli: 2000,
+      harga_jual: 2200,
+      pbf: "PT BioHealth",
+      satuan: "Tablet",
+      diskon: 10,
+    },
+    {
+      id_obat: 2,
+      nama_obat: "Amoxicillin",
+      harga_beli: 3500,
+      harga_jual: 3850,
+      pbf: "PT AMS",
+      satuan: "Kapsul",
+      diskon: 2,
+    },
+    {
+      id_obat: 3,
+      nama_obat: "Ibuprofen",
+      harga_beli: 7000,
+      harga_jual: 7700,
+      pbf: "PT ABC",
+      satuan: "Tablet",
+      diskon: 5,
+    },
+  ];
+
+  let items_stok = [
+    {
+      id_stok: 1,
+      id_obat: 1,
+      nama_obat: "Paracetamol 500mg",
       no_batch: "LKASD12",
-      stok: 23,
-      tgl_msk: 2017,
-      tgl_klr: 2018,
-      harga1: 2000,
-      harga2: 2000,
-      diskon: 80,
+      tanggal_expired: "12 Maret 2025",
+      jumlah: 100,
     },
     {
-      id: 2,
-      nama: "Ibuprofen 200mg",
-      no_batch: "AKMK232",
-      stok: 2,
-      tgl_msk: 2017,
-      tgl_klr: 2018,
-      harga1: 2000,
-      harga2: 2000,
-      diskon: 80,
+      id_stok: 2,
+      id_obat: 2,
+      nama_obat: "Amoxicillin",
+      no_batch: "AKDSA21",
+      tanggal_expired: "13 Maret 2025",
+      jumlah: 50,
     },
     {
-      id: 3,
-      nama: "Dexamethasone",
-      no_batch: "ASJ1231",
-      stok: 4,
-      tgl_msk: 2017,
-      tgl_klr: 2018,
-      harga1: 2000,
-      harga2: 2000,
-      diskon: 80,
-    },
-    {
-      id: 4,
-      nama: "Metformin",
-      no_batch: "AKSDM12",
-      stok: 23,
-      tgl_msk: 2017,
-      tgl_klr: 2018,
-      harga1: 2000,
-      harga2: 2000,
-      diskon: 80,
+      id_stok: 3,
+      id_obat: 3,
+      nama_obat: "Ibuprofen",
+      no_batch: "KDASA11",
+      tanggal_expired: "14 Maret 2025",
+      jumlah: 75,
     },
   ];
 </script>
@@ -145,54 +158,82 @@
     </Dropdown>
   </div>
   <Tabs tabStyle="underline">
-    <TabItem open title="Stok Obat">
-      <div class="flex space-x-4 justify-between">
-        <h1 class="text-2xl font-semibold">Data Stok Obat</h1>
+    <TabItem open title="Data Obat">
+      <div class="flex space-x-4 mb-4 justify-between">
+        <input
+          type="text"
+          class="border border-gray-400 p-2 rounded w-full flex-1"
+          placeholder="Cari data obat..."
+          bind:value={searchTermBarang}
+        />
+        <Button>
+          <PlusOutline class="w-5 h-5 me-2" />Tambah Data
+        </Button>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        <Table innerDivClass="left-0 my-2" hoverable={true}>
+          <TableHead>
+            <TableHeadCell>No</TableHeadCell>
+            <TableHeadCell>Nama Obat</TableHeadCell>
+            <TableHeadCell>Harga Beli</TableHeadCell>
+            <TableHeadCell>Harga Jual</TableHeadCell>
+            <TableHeadCell>PBF</TableHeadCell>
+            <TableHeadCell>Satuan</TableHeadCell>
+            <TableHeadCell>Diskon</TableHeadCell>
+          </TableHead>
+          <TableBody tableBodyClass="divide-y">
+            {#each items_barang.filter((item) => item.nama_obat
+                .toLowerCase()
+                .includes(searchTermBarang.toLowerCase())) as item}
+              <TableBodyRow>
+                <TableBodyCell>{item.id_obat}</TableBodyCell>
+                <TableBodyCell>{item.nama_obat}</TableBodyCell>
+                <TableBodyCell>{item.harga_beli}</TableBodyCell>
+                <TableBodyCell>{item.harga_jual}</TableBodyCell>
+                <TableBodyCell>{item.pbf}</TableBodyCell>
+                <TableBodyCell>{item.satuan}</TableBodyCell>
+                <TableBodyCell>{item.diskon}</TableBodyCell>
+              </TableBodyRow>
+            {/each}
+          </TableBody>
+        </Table>
+      </p>
+    </TabItem>
+    <TabItem title="Stok Obat">
+      <div class="flex space-x-4 mb-4 justify-between">
+        <input
+          type="text"
+          class="border border-gray-400 p-2 rounded w-full flex-1"
+          placeholder="Cari data obat..."
+          bind:value={searchTermStok}
+        />
         <Button>
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
       </div>
 
-      <Table
-        innerDivClass="left-0 my-2"
-        {items}
-        placeholder="Cari data obat"
-        hoverable={true}
-        filter={(item, searchTerm) =>
-          item.no_batch.toLowerCase().includes(searchTerm.toLowerCase())}
-      >
+      <Table innerDivClass="left-0 my-2" hoverable={true}>
         <TableHead>
           <TableHeadCell>No</TableHeadCell>
           <TableHeadCell>Nama Obat</TableHeadCell>
           <TableHeadCell>No Batch</TableHeadCell>
-          <TableHeadCell>Jumlah Stok</TableHeadCell>
-          <TableHeadCell>Tanggal Masuk</TableHeadCell>
-          <TableHeadCell>Tanggal Keluar</TableHeadCell>
-          <TableHeadCell>Harga 1</TableHeadCell>
-          <TableHeadCell>Harga 2</TableHeadCell>
-          <TableHeadCell>Diskon</TableHeadCell>
+          <TableHeadCell>Tanggal Expired</TableHeadCell>
+          <TableHeadCell>Jumlah</TableHeadCell>
         </TableHead>
         <TableBody tableBodyClass="divide-y">
-          <TableBodyRow slot="row" let:item>
-            <TableBodyCell>{item.id}</TableBodyCell>
-            <TableBodyCell>{item.nama}</TableBodyCell>
-            <TableBodyCell>{item.no_batch}</TableBodyCell>
-            <TableBodyCell>{item.stok}</TableBodyCell>
-            <TableBodyCell>{item.tgl_msk}</TableBodyCell>
-            <TableBodyCell>{item.tgl_klr}</TableBodyCell>
-            <TableBodyCell>{item.harga1}</TableBodyCell>
-            <TableBodyCell>{item.harga2}</TableBodyCell>
-            <TableBodyCell>{item.diskon}</TableBodyCell>
-          </TableBodyRow>
+          {#each items_stok.filter((item) => item.nama_obat
+              .toLowerCase()
+              .includes(searchTermStok.toLowerCase())) as item}
+            <TableBodyRow>
+              <TableBodyCell>{item.id_stok}</TableBodyCell>
+              <TableBodyCell>{item.nama_obat}</TableBodyCell>
+              <TableBodyCell>{item.no_batch}</TableBodyCell>
+              <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
+              <TableBodyCell>{item.jumlah}</TableBodyCell>
+            </TableBodyRow>
+          {/each}
         </TableBody>
       </Table>
-    </TabItem>
-    <TabItem title="Faktur">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        <b>Faktur:</b>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-        incididunt ut labore et dolore magna aliqua.
-      </p>
     </TabItem>
     <TabItem title="Tanggal Expired">
       <p class="text-sm text-gray-500 dark:text-gray-400">
