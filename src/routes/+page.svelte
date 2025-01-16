@@ -12,7 +12,34 @@
     Tabs,
     TabItem,
   } from "flowbite-svelte";
+
+  import {
+    isPermissionGranted,
+    requestPermission,
+    sendNotification,
+  } from "@tauri-apps/plugin-notification";
+
   import { PlusOutline, BellSolid, EyeSolid } from "flowbite-svelte-icons";
+
+  let notificationGranted = false;
+
+  async function setupNotification() {
+    notificationGranted = await isPermissionGranted();
+
+    if (!notificationGranted) {
+      const permission = await requestPermission();
+      notificationGranted = permission === "granted";
+    }
+
+    if (notificationGranted) {
+      sendNotification({
+        title: "Notifikasi",
+        body: "Notifikasi berhasil diaktifkan",        
+      });
+    }
+  }
+
+  setupNotification();
 
   let searchTermBarang = "";
   let searchTermStok = "";
