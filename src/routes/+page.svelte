@@ -29,6 +29,7 @@
     PlusOutline,
     BellSolid,
     EyeSolid,
+    ExclamationCircleOutline,
     ChevronDownOutline,
     PenSolid,
     TrashBinSolid,
@@ -38,12 +39,14 @@
 
   let notificationGranted = false;
   let dropdownPBFOpen = $state(false);
-  let isAddingPBF = $state(false);
   let clickCreateDataModal = $state(false);
-  let isDataObat = $state(true);
+  let clickCreatePBFModal = $state(false);
+  let isPBF = $state(true);
+  let isDataObat = $state(false);
   let isStokObat = $state(false);
   let isTglExp = $state(false);
   let isStockAlert = $state(false);
+  let PBFDelAlert = $state(false);
 
   // async function setupNotification() {
   //   notificationGranted = await isPermissionGranted();
@@ -72,7 +75,7 @@
 
   let items_barang = $state([
     {
-      id_obat: null,
+      id_obat: 0,
       nama_obat: "",
       satuan: "",
       jml_stok: null,
@@ -81,7 +84,7 @@
 
   let items_stok = $state([
     {
-      id_stok: null,
+      id_stok: 0,
       id_obat: null,
       nama_obat: "",
       no_batch: "",
@@ -121,6 +124,15 @@
   async function setPBF() {
     try {
       const db = await Database.load("sqlite:test.db");
+      const existingPBF = await db.select(
+        "SELECT nama_pbf FROM pbf WHERE nama_pbf = $1",
+        [nama_pbf]
+      );
+
+      if (existingPBF.length > 0) {
+        throw new Error(`PBF dengan nama "${nama_pbf}" sudah ada`);
+      }
+
       const result = await db.execute(
         "INSERT INTO pbf (nama_pbf) VALUES ($1)",
         [nama_pbf]
@@ -129,13 +141,26 @@
         alert("Added PBF: " + nama_pbf);
         console.log("Added PBF: " + nama_pbf);
         getItems();
-      } else {
-        alert("Failed to add PBF");
-        console.log("Failed to add PBF");
+        return { success: true, message: "Data PBF berhasil ditambahkan" };
       }
     } catch (error) {
       alert(error);
       console.log(error);
+      return { success: false, message: error };
+    }
+  }
+
+  async function deletePBF() {
+    try {
+      const db = await Database.load("sqlite:test.db");
+      await db.execute("DELETE FROM pbf WHERE nama_pbf = $1", [selectedPBF]);
+      alert("PBF " + selectedPBF + " berhasil dihapus");
+      console.log("PBF deleted success");
+      selectedPBF = "Pilih PBF disini";
+      getItems();
+    } catch (error) {
+      alert("Error: " + error);
+      console.log("Error: " + error);
     }
   }
 
@@ -153,152 +178,167 @@
 </script>
 
 <main class="m-4">
-  <Modal bind:open={clickCreateDataModal} autoclose={false} outsideclose>
-    {#if !isAddingPBF}
-      <form
-        in:fly={{ x: 50, duration: 300 }}
-        out:fly={{ x: -50, duration: 300 }}
-        class="flex flex-col space-y-4"
-        action="#"
+  <Modal bind:open={PBFDelAlert} size="xs" autoclose>
+    <div class="text-center">
+      <ExclamationCircleOutline
+        class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200"
+      />
+      <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+        Apakah anda yakin ingin menghapus {selectedPBF}?
+      </h3>
+      <Button color="red" class="me-2" onclick={() => deletePBF()}>Ya</Button>
+      <Button
+        color="alternative"
+        onclick={() => (selectedPBF = "Pilih PBF disini")}>Tidak</Button
       >
-        <h3 class="text-xl font-medium text-gray-900 dark:text-white">
-          Tambah Data
-        </h3>
-        <hr />
-        <Label class="space-y-2">
-          <span class="text-gray-900">Nama Obat</span>
-          <Input
-            type="text"
-            name="nama_obat"
-            placeholder="Paracetamol"
-            class="font-normal"
-            required
-          />
-        </Label>
-        <Label class="space-y-2">
-          <span class="text-gray-900">Harga Beli</span>
-          <Input
-            type="number"
-            name="harga_beli"
-            placeholder="10000"
-            class="font-normal"
-            required
-          />
-        </Label>
-        <Label class="space-y-2">
-          <span class="text-gray-900">Harga Jual</span>
-          <Input
-            type="number"
-            name="harga_jual"
-            placeholder="11000"
-            class="font-normal"
-            required
-          />
-        </Label>
-        <Label class="space-y-2 flex flex-col">
-          <span class="text-gray-900">PBF</span>
-          <Button color="alternative" class="hover:text-black text-black"
-            >{selectedPBF}<ChevronDownOutline
-              class="w-6 h-6 ms-2 text-black dark:text-white"
-            /></Button
-          >
-          <Dropdown
-            bind:open={dropdownPBFOpen}            
-            placement="bottom"
-            class="w-48 overflow-y-auto py-1 h-48 "
-          >
-            {#each items_pbf as item_pbf}
-              <DropdownItem
-                class="flex items-center text-base font-semibold gap-2"
-                onclick={() => {
-                  selectedPBFId = item_pbf.id_pbf;
-                  selectedPBF = item_pbf.nama_pbf;
-                  dropdownPBFOpen = false;
-                }}
-              >
-                {item_pbf.nama_pbf}
-              </DropdownItem>
-            {/each}
-            <a
-              slot="footer"
-              href="/"
-              class="flex justify-center px-3 py-2 -mb-1 text-sm font-medium text-primary-600 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-primary-500 hover:underline"
-              onclick={() => (isAddingPBF = true)}
-            >
-              Tambah PBF Baru
-            </a>
-          </Dropdown>
-        </Label>
-        <Label class="space-y-2">
-          <span class="text-gray-900">Satuan</span>
-          <Input
-            type="text"
-            name="satuan"
-            placeholder="Tablet"
-            class="font-normal"
-            required
-          />
-        </Label>
-        <Label class="space-y-2">
-          <span class="text-gray-900">Diskon (%)</span>
-          <Input
-            type="number"
-            name="diskon"
-            placeholder="10"
-            class="font-normal"
-            required
-          />
-        </Label>
-        <hr />
-        <Button
-          on:click={() => {
-            alert('Handle "success"');
-            clickCreateDataModal = false;
-          }}>Tambah</Button
+    </div>
+  </Modal>
+  <Modal bind:open={clickCreatePBFModal} autoclose={false} outsideclose>
+    <form
+      class="flex flex-col space-y-4"
+      onsubmit={() => {
+        setPBF();
+        clickCreatePBFModal = false;
+        selectedPBF = "Pilih PBF disini";
+      }}
+    >
+      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+        Tambah Data PBF
+      </h3>
+      <hr />
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nama PBF</span>
+        <Input
+          bind:value={nama_pbf}
+          type="text"
+          name="pbf"
+          placeholder="PT ABC"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <div class="flex flex-row justify-between space-x-4">
+        <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
+          >Simpan</Button
         >
-      </form>
-    {:else}
-      <form
-        in:fly={{ x: -50, duration: 300 }}
-        out:fly={{ x: 50, duration: 300 }}
-        class="flex flex-col space-y-4"
-        onsubmit={() => {
-          setPBF();
-          isAddingPBF = false;
+        <Button
+          class="flex flex-1"
+          type="button"
+          color="alternative"
+          onclick={() => {
+            isPBF = false;
+            isDataObat = true;
+            clickCreatePBFModal = false;
+            clickCreateDataModal = true;
+          }}
+        >
+          Kembali
+        </Button>
+      </div>
+    </form>
+  </Modal>
+  <Modal bind:open={clickCreateDataModal} autoclose={false} outsideclose>
+    <form class="flex flex-col space-y-4" action="#">
+      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+        Tambah Data
+      </h3>
+      <hr />
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nama Obat</span>
+        <Input
+          type="text"
+          name="nama_obat"
+          placeholder="Paracetamol"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Harga Beli</span>
+        <Input
+          type="number"
+          name="harga_beli"
+          placeholder="10000"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Harga Jual</span>
+        <Input
+          type="number"
+          name="harga_jual"
+          placeholder="11000"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2 flex flex-col">
+        <span class="text-gray-900">PBF</span>
+        <Button color="alternative" class="hover:text-black text-black"
+          >{selectedPBF}<ChevronDownOutline
+            class="w-6 h-6 ms-2 text-black dark:text-white"
+          /></Button
+        >
+        <Dropdown
+          bind:open={dropdownPBFOpen}
+          placement="bottom"
+          class="w-48 overflow-y-auto py-1 h-48 "
+        >
+          {#each items_pbf as item_pbf}
+            <DropdownItem
+              class="flex items-center text-base font-semibold gap-2"
+              onclick={() => {                
+                selectedPBF = item_pbf.nama_pbf;
+                dropdownPBFOpen = false;
+              }}
+            >
+              {item_pbf.nama_pbf}
+            </DropdownItem>
+          {/each}
+          <a
+            slot="footer"
+            href="/"
+            class="flex justify-center px-3 py-2 -mb-1 text-sm font-medium text-primary-600 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-primary-500 hover:underline"
+            onclick={() => {
+              isDataObat = false;
+              isPBF = true;
+              clickCreateDataModal = false;
+              clickCreatePBFModal = true;
+            }}
+          >
+            Tambah PBF Baru
+          </a>
+        </Dropdown>
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Satuan</span>
+        <Input
+          type="text"
+          name="satuan"
+          placeholder="Tablet"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Diskon (%)</span>
+        <Input
+          type="number"
+          name="diskon"
+          placeholder="10"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <hr />
+      <Button
+        on:click={() => {
+          alert('Handle "success"');
           clickCreateDataModal = false;
-          selectedPBF = "Pilih PBF disini";
-        }}
+        }}>Tambah</Button
       >
-        <h3 class="text-xl font-medium text-gray-900 dark:text-white">
-          Tambah Data PBF
-        </h3>
-        <hr />
-        <Label class="space-y-2">
-          <span class="text-gray-900">Nama PBF</span>
-          <Input
-            bind:value={nama_pbf}
-            type="text"
-            name="pbf"
-            placeholder="PT ABC"
-            class="font-normal"
-            required
-          />
-        </Label>
-        <div class="flex flex-row justify-between space-x-4">
-          <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
-            >Simpan</Button
-          >
-          <Button
-            class="flex flex-1"
-            type="button"
-            color="alternative"
-            onclick={() => (isAddingPBF = false)}
-          >
-            Kembali
-          </Button>
-        </div>
-      </form>
-    {/if}
+    </form>
   </Modal>
   <div class="flex justify-between">
     <h1 class="text-3xl font-bold">PharmAssist</h1>
@@ -383,9 +423,82 @@
   </div>
   <Tabs tabStyle="underline">
     <TabItem
+      open={isPBF}
+      title="Data PBF"
+      on:click={() => {
+        isPBF = true;
+        isDataObat = false;
+        isStokObat = false;
+        isTglExp = false;
+        isStockAlert = false;
+      }}
+    >
+      <div class="flex space-x-4 mb-4 justify-between">
+        <input
+          type="text"
+          class="border border-gray-400 p-2 rounded w-full flex-1"
+          placeholder="Cari data PBF..."
+          bind:value={searchPBF}
+        />
+        <Button
+          color="red"
+          on:click={() => {
+            resetPBF();
+            getItems();
+            selectedPBF = "Pilih PBF disini";
+          }}>RESET PBF</Button
+        >
+        <Button on:click={() => (clickCreatePBFModal = true)}>
+          <PlusOutline class="w-5 h-5 me-2" />Tambah Data
+        </Button>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        <Table innerDivClass="left-0 my-2" hoverable={true}>
+          <TableHead>
+            <TableHeadCell sort={(a, b) => a.id_obat - b.id_obat}
+              >No</TableHeadCell
+            >
+            <TableHeadCell
+              sort={(a, b) => a.nama_obat.localeCompare(b.nama_obat)}
+              >Nama PBF</TableHeadCell
+            >
+            <TableHeadCell>Aksi</TableHeadCell>
+          </TableHead>
+          <TableBody tableBodyClass="divide-y">
+            <!-- {#each items_barang.filter((item) => item.nama_obat
+                .toLowerCase()
+                .includes(searchTermBarang.toLowerCase())) as item} -->
+            {#each items_pbf.filter((item) => item.nama_pbf.toLowerCase().includes(searchPBF.toLowerCase())) as item, index}
+              <TableBodyRow>
+                <TableBodyCell>{index + 1}</TableBodyCell>
+                <TableBodyCell>{item.nama_pbf}</TableBodyCell>
+                <TableBodyCell>
+                  <div class="flex space-x-4">
+                    <Button color="yellow" pill={true} class="!p-2"
+                      ><PenSolid class="w-6 h-6" /></Button
+                    ><Button
+                      color="red"
+                      pill={true}
+                      class="!p-2"
+                      onclick={() => {
+                        selectedPBF = item.nama_pbf;
+                        PBFDelAlert = true;
+                      }}><TrashBinSolid class="w-6 h-6" /></Button
+                    >
+                  </div>
+                </TableBodyCell>
+              </TableBodyRow>
+            {/each}
+            <!-- {/each} -->
+          </TableBody>
+        </Table>
+      </p>
+    </TabItem>
+    <TabItem
       open={isDataObat}
       title="Data Obat"
       on:click={() => {
+        isPBF = false;
         isDataObat = true;
         isStokObat = false;
         isTglExp = false;
@@ -399,14 +512,6 @@
           placeholder="Cari data obat..."
           bind:value={searchTermBarang}
         />
-        <Button
-          color="red"
-          on:click={() => {
-            resetPBF();
-            getItems();
-            selectedPBF = "Pilih PBF disini";
-          }}>RESET PBF</Button
-        >
         <Button on:click={() => (clickCreateDataModal = true)}>
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
@@ -431,8 +536,8 @@
             <!-- {#each items_barang.filter((item) => item.nama_obat
                 .toLowerCase()
                 .includes(searchTermBarang.toLowerCase())) as item} -->
-            <TableBodyRow>
-              {#each items_barang as item}
+            {#each items_barang as item}
+              <TableBodyRow>
                 <TableBodyCell>{item.id_obat}</TableBodyCell>
                 <TableBodyCell>{item.nama_obat}</TableBodyCell>
                 <TableBodyCell>{item.satuan}</TableBodyCell>
@@ -455,8 +560,8 @@
                     >
                   </div>
                 </TableBodyCell>
-              {/each}
-            </TableBodyRow>
+              </TableBodyRow>
+            {/each}
             <!-- {/each} -->
           </TableBody>
         </Table>
@@ -466,6 +571,7 @@
       open={isStokObat}
       title="Stok Obat"
       on:click={() => {
+        isPBF = false;
         isDataObat = false;
         isStokObat = true;
         isTglExp = false;
@@ -499,8 +605,8 @@
           <!-- {#each items_stok.filter((item) => item.nama_obat
               .toLowerCase()
               .includes(searchTermStok.toLowerCase())) as item} -->
-          <TableBodyRow>
-            {#each items_stok as item}
+          {#each items_stok as item}
+            <TableBodyRow>
               <TableBodyCell>{item.id_stok}</TableBodyCell>
               <TableBodyCell>{item.nama_obat}</TableBodyCell>
               <TableBodyCell>{item.no_batch}</TableBodyCell>
@@ -508,8 +614,8 @@
               <TableBodyCell>{item.harga_jual}</TableBodyCell>
               <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
               <TableBodyCell>{item.jumlah}</TableBodyCell>
-            {/each}
-          </TableBodyRow>
+            </TableBodyRow>
+          {/each}
           <!-- {/each} -->
         </TableBody>
       </Table>
@@ -518,6 +624,7 @@
       open={isTglExp}
       title="Tanggal Expired"
       on:click={() => {
+        isPBF = false;
         isDataObat = false;
         isStokObat = false;
         isTglExp = true;
@@ -534,6 +641,7 @@
       open={isStockAlert}
       title="Stok < 25"
       on:click={() => {
+        isPBF = false;
         isDataObat = false;
         isStokObat = false;
         isTglExp = false;

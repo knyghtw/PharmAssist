@@ -33,8 +33,17 @@ pub fn run() {
                 FOREIGN KEY (id_barang) REFERENCES barang(id_barang),
                 FOREIGN KEY (id_pbf) REFERENCES pbf(id_pbf)
             );",
-        kind: MigrationKind::Up,
-    }];
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "add_unique_constraints",
+            sql: "CREATE UNIQUE INDEX idx_nama_obat ON barang(nama_obat);
+                 CREATE UNIQUE INDEX idx_nama_pbf ON pbf(nama_pbf);
+                 CREATE UNIQUE INDEX idx_batch_barang_pbf ON stok_obat(no_batch, id_barang, id_pbf);",
+            kind: MigrationKind::Up,
+        },        
+    ];
 
     tauri::Builder::default()
         .plugin(
