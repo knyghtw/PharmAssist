@@ -16,6 +16,7 @@
     Modal,
     Label,
     Input,
+    Search,
   } from "flowbite-svelte";
 
   import {
@@ -33,13 +34,15 @@
     TrashBinSolid,
   } from "flowbite-svelte-icons";
 
+  import Database from "@tauri-apps/plugin-sql";
+
   let notificationGranted = false;
-  let isAddingPBF = false;
-  let clickCreateDataModal = false;
-  let isDataObat = true;
-  let isStokObat = false;
-  let isTglExp = false;
-  let isStockAlert = false;
+  let isAddingPBF = $state(false);
+  let clickCreateDataModal = $state(false);
+  let isDataObat = $state(true);
+  let isStokObat = $state(false);
+  let isTglExp = $state(false);
+  let isStockAlert = $state(false);
 
   // async function setupNotification() {
   //   notificationGranted = await isPermissionGranted();
@@ -59,63 +62,92 @@
 
   // setupNotification();
 
-  let searchTermBarang = "";
-  let searchTermStok = "";
-  let searchStockAlert = "";
+  let searchTermBarang = $state("");
+  let searchTermStok = $state("");
+  let searchPBF = $state("");
+  let searchStockAlert = $state("");
+  let selectedPBF = $state(0);
 
-  let items_barang = [
+  let items_barang = $state([
     {
-      id_obat: 1,
-      nama_obat: "Paracetamol 500mg",
-      satuan: "Tablet",
-      jml_stok: 10,
+      id_obat: null,
+      nama_obat: "",
+      satuan: "",
+      jml_stok: null,
     },
-    {
-      id_obat: 2,
-      nama_obat: "Amoxicillin",
-      satuan: "Kapsul",
-      jml_stok: 2,
-    },
-    {
-      id_obat: 3,
-      nama_obat: "Ibuprofen",
-      satuan: "Tablet",
-      jml_stok: 5,
-    },
-  ];
+  ]);
 
-  let items_stok = [
+  let items_stok = $state([
     {
-      id_stok: 1,
-      id_obat: 1,
-      nama_obat: "Paracetamol 500mg",
-      no_batch: "LKASD12",
-      harga_beli: 2000,
-      harga_jual: 2200,
-      tanggal_expired: "12 Maret 2025",
-      jumlah: 100,
+      id_stok: null,
+      id_obat: null,
+      nama_obat: "",
+      no_batch: "",
+      harga_beli: null,
+      harga_jual: null,
+      tanggal_expired: "",
+      jumlah: null,
     },
+  ]);
+
+  let items_pbf = $state([
     {
-      id_stok: 2,
-      id_obat: 2,
-      nama_obat: "Amoxicillin",
-      no_batch: "AKDSA21",
-      harga_beli: 3000,
-      harga_jual: 3300,
-      tanggal_expired: "13 Maret 2025",
-      jumlah: 50,
+      id_pbf: 0,
+      nama_pbf: "",
     },
-    {
-      id_stok: 3,
-      id_obat: 3,
-      nama_obat: "Ibuprofen",
-      no_batch: "KDASA11",
-      harga_beli: 4000,
-      harga_jual: 4400,
-      tanggal_expired: "14 Maret 2025",
-      jumlah: 75,
-    },
-  ];
+  ]);
+
+  let nama_pbf = $state("");
+
+  async function getItems() {
+    try {
+      const db = await Database.load("sqlite:test.db");
+      const dbItemBarang = await db.select("SELECT * FROM barang");
+      const dbItemStok = await db.select("SELECT * FROM stok_obat");
+      const dbItemPBF = await db.select("SELECT * FROM pbf");
+
+      items_barang = dbItemBarang;
+      items_stok = dbItemStok;
+      items_pbf = dbItemPBF;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  getItems();
+
+  async function setPBF() {
+    try {
+      const db = await Database.load("sqlite:test.db");
+      const result = await db.execute(
+        "INSERT INTO pbf (nama_pbf) VALUES ($1)",
+        [nama_pbf]
+      );
+      if (result) {
+        alert("Added PBF: " + nama_pbf);
+        console.log("Added PBF: " + nama_pbf);
+        getItems();
+      } else {
+        alert("Failed to add PBF");
+        console.log("Failed to add PBF");
+      }
+    } catch (error) {
+      alert(error);
+      console.log(error);
+    }
+  }
+
+  async function resetPBF() {
+    try {
+      const db = await Database.load("sqlite:test.db");
+      await db.execute("DELETE FROM pbf");
+      alert("PBF reset success");
+      console.log("PBF reset success");
+    } catch (error) {
+      alert("Error: " + error);
+      console.log("Error: " + error);
+    }
+  }
 </script>
 
 <main class="m-4">
@@ -169,16 +201,19 @@
             /></Button
           >
           <Dropdown class="w-48 overflow-y-auto py-1 h-48 ">
-            <DropdownItem
-              class="flex items-center text-base font-semibold gap-2"
-            >
-              Leslie Livingston
-            </DropdownItem>
+            {#each items_pbf as item_pbf}
+              <DropdownItem
+                class="flex items-center text-base font-semibold gap-2"
+                onclick={() => (selectedPBF = item_pbf.id_pbf)}
+              >
+                {item_pbf.nama_pbf}
+              </DropdownItem>
+            {/each}
             <a
               slot="footer"
               href="/"
               class="flex justify-center px-3 py-2 -mb-1 text-sm font-medium text-primary-600 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-primary-500 hover:underline"
-              on:click={() => (isAddingPBF = true)}
+              onclick={() => (isAddingPBF = true)}
             >
               Tambah PBF Baru
             </a>
@@ -217,7 +252,8 @@
         in:fly={{ x: -50, duration: 300 }}
         out:fly={{ x: 50, duration: 300 }}
         class="flex flex-col space-y-4"
-        on:submit|preventDefault={() => {
+        onsubmit={() => {
+          setPBF();
           isAddingPBF = false;
           clickCreateDataModal = false;
         }}
@@ -229,6 +265,7 @@
         <Label class="space-y-2">
           <span class="text-gray-900">Nama PBF</span>
           <Input
+            bind:value={nama_pbf}
             type="text"
             name="pbf"
             placeholder="PT ABC"
@@ -237,12 +274,14 @@
           />
         </Label>
         <div class="flex flex-row justify-between space-x-4">
-          <Button class="flex flex-1" type="submit">Simpan</Button>
+          <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
+            >Simpan</Button
+          >
           <Button
             class="flex flex-1"
             type="button"
             color="alternative"
-            on:click={() => (isAddingPBF = false)}
+            onclick={() => (isAddingPBF = false)}
           >
             Kembali
           </Button>
@@ -349,6 +388,7 @@
           placeholder="Cari data obat..."
           bind:value={searchTermBarang}
         />
+        <Button color="red" on:click={() => resetPBF()}>RESET PBF</Button>
         <Button on:click={() => (clickCreateDataModal = true)}>
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
@@ -356,17 +396,25 @@
       <p class="text-sm text-gray-500 dark:text-gray-400">
         <Table innerDivClass="left-0 my-2" hoverable={true}>
           <TableHead>
-            <TableHeadCell>No</TableHeadCell>
-            <TableHeadCell>Nama Obat</TableHeadCell>
+            <TableHeadCell sort={(a, b) => a.id_obat - b.id_obat}
+              >No</TableHeadCell
+            >
+            <TableHeadCell
+              sort={(a, b) => a.nama_obat.localeCompare(b.nama_obat)}
+              >Nama Obat</TableHeadCell
+            >
             <TableHeadCell>Satuan</TableHeadCell>
-            <TableHeadCell>Jumlah Stok</TableHeadCell>
+            <TableHeadCell sort={(a, b) => a.jml_stok - b.jml_stok}
+              >Jumlah Stok</TableHeadCell
+            >
             <TableHeadCell>Aksi</TableHeadCell>
           </TableHead>
           <TableBody tableBodyClass="divide-y">
-            {#each items_barang.filter((item) => item.nama_obat
+            <!-- {#each items_barang.filter((item) => item.nama_obat
                 .toLowerCase()
-                .includes(searchTermBarang.toLowerCase())) as item}
-              <TableBodyRow>
+                .includes(searchTermBarang.toLowerCase())) as item} -->
+            <TableBodyRow>
+              {#each items_barang as item}
                 <TableBodyCell>{item.id_obat}</TableBodyCell>
                 <TableBodyCell>{item.nama_obat}</TableBodyCell>
                 <TableBodyCell>{item.satuan}</TableBodyCell>
@@ -389,8 +437,9 @@
                     >
                   </div>
                 </TableBodyCell>
-              </TableBodyRow>
-            {/each}
+              {/each}
+            </TableBodyRow>
+            <!-- {/each} -->
           </TableBody>
         </Table>
       </p>
@@ -429,10 +478,11 @@
           <TableHeadCell>Jumlah Stok</TableHeadCell>
         </TableHead>
         <TableBody tableBodyClass="divide-y">
-          {#each items_stok.filter((item) => item.nama_obat
+          <!-- {#each items_stok.filter((item) => item.nama_obat
               .toLowerCase()
-              .includes(searchTermStok.toLowerCase())) as item}
-            <TableBodyRow>
+              .includes(searchTermStok.toLowerCase())) as item} -->
+          <TableBodyRow>
+            {#each items_stok as item}
               <TableBodyCell>{item.id_stok}</TableBodyCell>
               <TableBodyCell>{item.nama_obat}</TableBodyCell>
               <TableBodyCell>{item.no_batch}</TableBodyCell>
@@ -440,8 +490,9 @@
               <TableBodyCell>{item.harga_jual}</TableBodyCell>
               <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
               <TableBodyCell>{item.jumlah}</TableBodyCell>
-            </TableBodyRow>
-          {/each}
+            {/each}
+          </TableBodyRow>
+          <!-- {/each} -->
         </TableBody>
       </Table>
     </TabItem>
