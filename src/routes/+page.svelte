@@ -37,6 +37,7 @@
   import Database from "@tauri-apps/plugin-sql";
 
   let notificationGranted = false;
+  let dropdownPBFOpen = $state(false);
   let isAddingPBF = $state(false);
   let clickCreateDataModal = $state(false);
   let isDataObat = $state(true);
@@ -66,7 +67,8 @@
   let searchTermStok = $state("");
   let searchPBF = $state("");
   let searchStockAlert = $state("");
-  let selectedPBF = $state(0);
+  let selectedPBF = $state("Pilih PBF disini");
+  let selectedPBFId = $state(0);
 
   let items_barang = $state([
     {
@@ -196,15 +198,23 @@
         <Label class="space-y-2 flex flex-col">
           <span class="text-gray-900">PBF</span>
           <Button color="alternative" class="hover:text-black text-black"
-            >Pilih PBF disini<ChevronDownOutline
+            >{selectedPBF}<ChevronDownOutline
               class="w-6 h-6 ms-2 text-black dark:text-white"
             /></Button
           >
-          <Dropdown class="w-48 overflow-y-auto py-1 h-48 ">
+          <Dropdown
+            bind:open={dropdownPBFOpen}            
+            placement="bottom"
+            class="w-48 overflow-y-auto py-1 h-48 "
+          >
             {#each items_pbf as item_pbf}
               <DropdownItem
                 class="flex items-center text-base font-semibold gap-2"
-                onclick={() => (selectedPBF = item_pbf.id_pbf)}
+                onclick={() => {
+                  selectedPBFId = item_pbf.id_pbf;
+                  selectedPBF = item_pbf.nama_pbf;
+                  dropdownPBFOpen = false;
+                }}
               >
                 {item_pbf.nama_pbf}
               </DropdownItem>
@@ -256,6 +266,7 @@
           setPBF();
           isAddingPBF = false;
           clickCreateDataModal = false;
+          selectedPBF = "Pilih PBF disini";
         }}
       >
         <h3 class="text-xl font-medium text-gray-900 dark:text-white">
@@ -388,7 +399,14 @@
           placeholder="Cari data obat..."
           bind:value={searchTermBarang}
         />
-        <Button color="red" on:click={() => resetPBF()}>RESET PBF</Button>
+        <Button
+          color="red"
+          on:click={() => {
+            resetPBF();
+            getItems();
+            selectedPBF = "Pilih PBF disini";
+          }}>RESET PBF</Button
+        >
         <Button on:click={() => (clickCreateDataModal = true)}>
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
