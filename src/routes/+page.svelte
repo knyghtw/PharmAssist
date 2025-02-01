@@ -2,9 +2,7 @@
   import { fly } from "svelte/transition";
 
   import {
-    Button,
-    Dropdown,
-    DropdownItem,
+    Button,    
     Table,
     TableBody,
     TableBodyCell,
@@ -17,6 +15,7 @@
     Label,
     Input,
     Search,
+    Select,
   } from "flowbite-svelte";
 
   import {
@@ -41,7 +40,9 @@
   let dropdownPBFOpen = $state(false);
   let clickCreateDataModal = $state(false);
   let clickCreatePBFModal = $state(false);
+  let clickEditPBFModal = $state(false);
   let isPBF = $state(true);
+  let isFromDataObat = $state(false);
   let isDataObat = $state(false);
   let isStokObat = $state(false);
   let isTglExp = $state(false);
@@ -150,6 +151,24 @@
     }
   }
 
+  async function updatePBF() {
+    try {
+      const db = await Database.load("sqlite:test.db");
+      await db.execute("UPDATE pbf SET nama_pbf = $1 WHERE id_pbf = $2", [
+        nama_pbf,
+        selectedPBFId,
+      ]);
+      alert("PBF updated success");
+      console.log("PBF updated success");
+      getItems();
+      return { success: true, message: "Data PBF berhasil diubah" };
+    } catch (error) {
+      alert(error);
+      console.log(error);
+      return { success: false, message: error };
+    }
+  }
+
   async function deletePBF() {
     try {
       const db = await Database.load("sqlite:test.db");
@@ -221,18 +240,72 @@
         <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
           >Simpan</Button
         >
+        {#if isFromDataObat}
+          <Button
+            class="flex flex-1"
+            type="button"
+            color="alternative"
+            onclick={() => {
+              isPBF = false;
+              isDataObat = true;
+              clickCreatePBFModal = false;
+              clickCreateDataModal = true;
+            }}
+          >
+            Kembali
+          </Button>
+        {:else}
+          <Button
+            class="flex flex-1"
+            type="button"
+            color="alternative"
+            onclick={() => {
+              clickEditPBFModal = false;
+            }}
+          >
+            Batal
+          </Button>
+        {/if}
+      </div>
+    </form>
+  </Modal>
+  <Modal bind:open={clickEditPBFModal} autoclose={false} outsideclose>
+    <form
+      class="flex flex-col space-y-4"
+      onsubmit={() => {
+        updatePBF();
+        clickCreatePBFModal = false;
+        selectedPBF = "Pilih PBF disini";
+      }}
+    >
+      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+        Edit Data PBF
+      </h3>
+      <hr />
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nama PBF</span>
+        <Input
+          bind:value={nama_pbf}
+          type="text"
+          name="pbf"
+          placeholder="PT ABC"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <div class="flex flex-row justify-between space-x-4">
+        <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
+          >Simpan</Button
+        >
         <Button
           class="flex flex-1"
           type="button"
           color="alternative"
           onclick={() => {
-            isPBF = false;
-            isDataObat = true;
-            clickCreatePBFModal = false;
-            clickCreateDataModal = true;
+            clickEditPBFModal = false;
           }}
         >
-          Kembali
+          Batal
         </Button>
       </div>
     </form>
@@ -275,12 +348,14 @@
       </Label>
       <Label class="space-y-2 flex flex-col">
         <span class="text-gray-900">PBF</span>
-        <Button color="alternative" class="hover:text-black text-black"
+        <Button
+          color="alternative"
+          class="hover:text-black text-black"          
           >{selectedPBF}<ChevronDownOutline
             class="w-6 h-6 ms-2 text-black dark:text-white"
           /></Button
         >
-        <Dropdown
+        <!-- <Dropdown
           bind:open={dropdownPBFOpen}
           placement="bottom"
           class="w-48 overflow-y-auto py-1 h-48 "
@@ -288,9 +363,9 @@
           {#each items_pbf as item_pbf}
             <DropdownItem
               class="flex items-center text-base font-semibold gap-2"
-              onclick={() => {                
+              on:click={() => {
                 selectedPBF = item_pbf.nama_pbf;
-                dropdownPBFOpen = false;
+                dropdownPBFOpen = false;                
               }}
             >
               {item_pbf.nama_pbf}
@@ -303,13 +378,16 @@
             onclick={() => {
               isDataObat = false;
               isPBF = true;
+              isFromDataObat = true;
               clickCreateDataModal = false;
               clickCreatePBFModal = true;
             }}
           >
             Tambah PBF Baru
           </a>
-        </Dropdown>
+        </Dropdown> -->
+        
+        
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Satuan</span>
@@ -353,7 +431,7 @@
         ></div>
       </div>
     </div>
-    <Dropdown
+    <!-- <Dropdown
       placement="left"
       triggeredBy="#bell"
       class="w-full max-w-sm rounded divide-y divide-gray-100 shadow dark:bg-gray-800 dark:divide-gray-700"
@@ -419,7 +497,7 @@
           View all
         </div>
       </a>
-    </Dropdown>
+    </Dropdown> -->
   </div>
   <Tabs tabStyle="underline">
     <TabItem
@@ -455,27 +533,31 @@
       <p class="text-sm text-gray-500 dark:text-gray-400">
         <Table innerDivClass="left-0 my-2" hoverable={true}>
           <TableHead>
-            <TableHeadCell sort={(a, b) => a.id_obat - b.id_obat}
-              >No</TableHeadCell
-            >
-            <TableHeadCell
-              sort={(a, b) => a.nama_obat.localeCompare(b.nama_obat)}
-              >Nama PBF</TableHeadCell
-            >
-            <TableHeadCell>Aksi</TableHeadCell>
+            <TableHeadCell>No</TableHeadCell>
+            <TableHeadCell>Nama PBF</TableHeadCell>
+            <TableHeadCell>
+              <span class="sr-only">Aksi</span>
+            </TableHeadCell>
           </TableHead>
           <TableBody tableBodyClass="divide-y">
-            <!-- {#each items_barang.filter((item) => item.nama_obat
+            {#each items_pbf.filter((item) => item.nama_pbf
                 .toLowerCase()
-                .includes(searchTermBarang.toLowerCase())) as item} -->
-            {#each items_pbf.filter((item) => item.nama_pbf.toLowerCase().includes(searchPBF.toLowerCase())) as item, index}
+                .includes(searchPBF.toLowerCase())) as item, index}
               <TableBodyRow>
                 <TableBodyCell>{index + 1}</TableBodyCell>
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
                 <TableBodyCell>
                   <div class="flex space-x-4">
-                    <Button color="yellow" pill={true} class="!p-2"
-                      ><PenSolid class="w-6 h-6" /></Button
+                    <Button
+                      color="yellow"
+                      pill={true}
+                      class="!p-2"
+                      onclick={() => {
+                        selectedPBFId = item.id_pbf;
+                        selectedPBF = item.nama_pbf;
+                        nama_pbf = item.nama_pbf;
+                        clickEditPBFModal = true;
+                      }}><PenSolid class="w-6 h-6" /></Button
                     ><Button
                       color="red"
                       pill={true}
@@ -512,7 +594,12 @@
           placeholder="Cari data obat..."
           bind:value={searchTermBarang}
         />
-        <Button on:click={() => (clickCreateDataModal = true)}>
+        <Button
+          on:click={() => {
+            clickCreateDataModal = true;
+            selectedPBF = "Pilih PBF disini";
+          }}
+        >
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
       </div>
@@ -533,10 +620,9 @@
             <TableHeadCell>Aksi</TableHeadCell>
           </TableHead>
           <TableBody tableBodyClass="divide-y">
-            <!-- {#each items_barang.filter((item) => item.nama_obat
+            {#each items_barang.filter((item) => item.nama_obat
                 .toLowerCase()
-                .includes(searchTermBarang.toLowerCase())) as item} -->
-            {#each items_barang as item}
+                .includes(searchTermBarang.toLowerCase())) as item}
               <TableBodyRow>
                 <TableBodyCell>{item.id_obat}</TableBodyCell>
                 <TableBodyCell>{item.nama_obat}</TableBodyCell>
