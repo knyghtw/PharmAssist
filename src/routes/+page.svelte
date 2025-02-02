@@ -35,6 +35,8 @@
   } from "flowbite-svelte-icons";
 
   import Database from "@tauri-apps/plugin-sql";
+  import pbfService from "./services/pbfService";
+  import barangService from "./services/barangService";
 
   let notificationGranted = false;
   let dropdownPBFOpen = $state(false);
@@ -42,7 +44,6 @@
   let clickCreatePBFModal = $state(false);
   let clickEditPBFModal = $state(false);
   let isPBF = $state(true);
-  let isFromDataObat = $state(false);
   let isDataObat = $state(false);
   let isStokObat = $state(false);
   let isTglExp = $state(false);
@@ -77,7 +78,7 @@
   let items_barang = $state([
     {
       id_obat: 0,
-      nama_obat: "",
+      nama_barang: "",
       satuan: "",
       jml_stok: 0,
     },
@@ -87,7 +88,7 @@
     {
       id_stok: 0,
       id_obat: null,
-      nama_obat: "",
+      nama_barang: "",
       no_batch: "",
       harga_beli: null,
       harga_jual: null,
@@ -104,21 +105,36 @@
   ]);
 
   let nama_pbf = $state("");
-  let nama_obat = $state("");
+  let nama_barang = $state("");
   let satuan = $state("");
+
+  async function getPBF() {
+    try {
+      const pbf = await pbfService.getItems();
+      items_pbf = pbf;
+    } catch (error) {
+      console.error(error);
+      alert("Gagal mengambil data");
+    }
+  }
+
+  async function getBarang() {
+    try {
+      const barang = await barangService.getItems();
+      items_barang = barang;
+    } catch (error) {
+      console.error(error);
+      alert("Gagal mengambil data");
+    }
+  }
 
   async function getItems() {
     try {
-      const db = await Database.load("sqlite:test.db");
-      const dbItemBarang = await db.select("SELECT * FROM barang");
-      const dbItemStok = await db.select("SELECT * FROM stok_obat");
-      const dbItemPBF = await db.select("SELECT * FROM pbf");
-
-      items_barang = dbItemBarang;
-      items_stok = dbItemStok;
-      items_pbf = dbItemPBF;
+      await getPBF();
+      await getBarang();
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      alert("Gagal mengambil data");
     }
   }
 
@@ -126,103 +142,52 @@
 
   async function setPBF() {
     try {
-      const db = await Database.load("sqlite:test.db");
-      const existingPBF = await db.select(
-        "SELECT nama_pbf FROM pbf WHERE nama_pbf = $1",
-        [nama_pbf]
-      );
-
-      if (existingPBF.length > 0) {
-        throw new Error(`PBF dengan nama "${nama_pbf}" sudah ada`);
-      }
-
-      const result = await db.execute(
-        "INSERT INTO pbf (nama_pbf) VALUES ($1)",
-        [nama_pbf]
-      );
-      if (result) {
-        alert("Added PBF: " + nama_pbf);
-        console.log("Added PBF: " + nama_pbf);
-        getItems();
-        return { success: true, message: "Data PBF berhasil ditambahkan" };
-      }
+      const result = await pbfService.createItem(nama_pbf);
+      alert(result.message);
+      await getItems();
     } catch (error) {
-      alert(error);
-      console.log(error);
-      return { success: false, message: error };
+      alert(error.message);
     }
   }
 
   async function setDataObat() {
     try {
-      const db = await Database.load("sqlite:test.db");
-      const existingData = await db.select(
-        "SELECT nama_obat FROM barang WHERE nama_obat = $1",
-        [nama_obat]
-      );
-
-      if (existingData.length > 0) {
-        throw new Error(`PBF dengan nama "${nama_pbf}" sudah ada`);
-      }
-
-      const result = await db.execute(
-        "INSERT INTO barang (nama_obat, satuan, total_stok) VALUES ($1, $2, 0)",
-        [nama_obat, satuan]
-      );
-      if (result) {
-        alert("Added PBF: " + nama_obat);
-        console.log("Added PBF: " + nama_obat);
-        getItems();
-        return { success: true, message: "Data PBF berhasil ditambahkan" };
-      }
+      const result = await barangService.createItem(nama_barang, satuan);
+      alert(result.message);
+      await getItems();
     } catch (error) {
-      alert(error);
-      console.log(error);
-      return { success: false, message: error };
+      alert(error.message);
     }
   }
 
   async function updatePBF() {
     try {
-      const db = await Database.load("sqlite:test.db");
-      await db.execute("UPDATE pbf SET nama_pbf = $1 WHERE id_pbf = $2", [
-        nama_pbf,
-        selectedPBFId,
-      ]);
-      alert("PBF updated success");
-      console.log("PBF updated success");
-      getItems();
-      return { success: true, message: "Data PBF berhasil diubah" };
+      const result = await pbfService.updatePBF(nama_pbf, selectedPBFId);
+      alert(result.message);
+      await getItems();
     } catch (error) {
-      alert(error);
-      console.log(error);
-      return { success: false, message: error };
+      alert(error.message);
     }
   }
 
   async function deletePBF() {
     try {
-      const db = await Database.load("sqlite:test.db");
-      await db.execute("DELETE FROM pbf WHERE nama_pbf = $1", [selectedPBF]);
-      alert("PBF " + selectedPBF + " berhasil dihapus");
-      console.log("PBF deleted success");
+      const result = await pbfService.deleteItem(selectedPBF);
+      alert(result.message);
       selectedPBF = "Pilih PBF disini";
-      getItems();
+      await getItems();
     } catch (error) {
-      alert("Error: " + error);
-      console.log("Error: " + error);
+      alert(error.message);
     }
   }
 
   async function resetPBF() {
     try {
-      const db = await Database.load("sqlite:test.db");
-      await db.execute("DELETE FROM pbf");
-      alert("PBF reset success");
-      console.log("PBF reset success");
+      const result = await pbfService.resetPBF();
+      alert(result.message);
+      await getItems();
     } catch (error) {
-      alert("Error: " + error);
-      console.log("Error: " + error);
+      alert(error.message);
     }
   }
 </script>
@@ -267,36 +232,21 @@
           required
         />
       </Label>
+      <hr />
       <div class="flex flex-row justify-between space-x-4">
         <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
           >Simpan</Button
         >
-        {#if isFromDataObat}
-          <Button
-            class="flex flex-1"
-            type="button"
-            color="alternative"
-            onclick={() => {
-              isPBF = false;
-              isDataObat = true;
-              clickCreatePBFModal = false;
-              clickCreateDataModal = true;
-            }}
-          >
-            Kembali
-          </Button>
-        {:else}
-          <Button
-            class="flex flex-1"
-            type="button"
-            color="alternative"
-            onclick={() => {
-              clickEditPBFModal = false;
-            }}
-          >
-            Batal
-          </Button>
-        {/if}
+        <Button
+          class="flex flex-1"
+          type="button"
+          color="alternative"
+          onclick={() => {
+            clickCreatePBFModal = false;
+          }}
+        >
+          Batal
+        </Button>
       </div>
     </form>
   </Modal>
@@ -330,7 +280,7 @@
         >
         <Button
           class="flex flex-1"
-          type="button"
+          type="submit"
           color="alternative"
           onclick={() => {
             clickEditPBFModal = false;
@@ -357,42 +307,14 @@
       <Label class="space-y-2">
         <span class="text-gray-900">Nama Obat</span>
         <Input
-          bind:value={nama_obat}
+          bind:value={nama_barang}
           type="text"
-          name="nama_obat"
+          name="nama_barang"
           placeholder="Paracetamol"
           class="font-normal"
           required
         />
       </Label>
-      <!-- <Label class="space-y-2">
-        <span class="text-gray-900">Harga Beli</span>
-        <Input
-          type="number"
-          name="harga_beli"
-          placeholder="10000"
-          class="font-normal"
-          required
-        />
-      </Label>
-      <Label class="space-y-2">
-        <span class="text-gray-900">Harga Jual</span>
-        <Input
-          type="number"
-          name="harga_jual"
-          placeholder="11000"
-          class="font-normal"
-          required
-        />
-      </Label>
-      <Label class="space-y-2 flex flex-col">
-        <span class="text-gray-900">PBF</span>
-        <Select bind:value={selectedPBF} class="w-full">
-          {#each items_pbf as item_pbf}
-            <option value={item_pbf.nama_pbf}>{item_pbf.nama_pbf}</option>
-          {/each}
-        </Select>
-      </Label> -->
       <Label class="space-y-2">
         <span class="text-gray-900">Satuan</span>
         <Input
@@ -404,23 +326,24 @@
           required
         />
       </Label>
-      <!-- <Label class="space-y-2">
-        <span class="text-gray-900">Diskon (%)</span>
-        <Input
-          type="number"
-          name="diskon"
-          placeholder="10"
-          class="font-normal"
-          required
-        />
-      </Label> -->
       <hr />
-      <Button
-        on:click={() => {
-          setDataObat();
-          clickCreateDataModal = false;
-        }}>Tambah</Button
-      >
+      <div class="flex flex-row justify-between space-x-4">
+        <Button
+          class="flex flex-1"
+          type="submit"
+          disabled={!nama_barang && !satuan}>Simpan</Button
+        >
+        <Button
+          class="flex flex-1"
+          type="button"
+          color="alternative"
+          onclick={() => {
+            clickCreateDataModal = false;
+          }}
+        >
+          Batal
+        </Button>
+      </div>
     </form>
   </Modal>
   <div class="flex justify-between">
@@ -544,40 +467,25 @@
       <p class="text-sm text-gray-500 dark:text-gray-400">
         <Table innerDivClass="left-0 my-2" hoverable={true}>
           <TableHead>
-            <TableHeadCell sort={(a, b) => a.id_obat - b.id_obat}
-              >No</TableHeadCell
-            >
-            <TableHeadCell
-              sort={(a, b) => a.nama_obat.localeCompare(b.nama_obat)}
-              >Nama Obat</TableHeadCell
-            >
+            <TableHeadCell>NO</TableHeadCell>
+            <TableHeadCell>NAMA OBAT</TableHeadCell>
             <TableHeadCell>Satuan</TableHeadCell>
-            <TableHeadCell sort={(a, b) => a.jml_stok - b.jml_stok}
-              >Jumlah Stok</TableHeadCell
-            >
-            <TableHeadCell>Aksi</TableHeadCell>
+            <TableHeadCell>
+              <span class="sr-only">Aksi</span>
+            </TableHeadCell>
           </TableHead>
           <TableBody tableBodyClass="divide-y">
-            {#each items_barang.filter((item) => item.nama_obat
+            {#each items_barang.filter((item) => item.nama_barang
                 .toLowerCase()
-                .includes(searchTermBarang.toLowerCase())) as item}
+                .includes(searchTermBarang.toLowerCase())) as item, index}
               <TableBodyRow>
-                <TableBodyCell>{item.id_obat}</TableBodyCell>
-                <TableBodyCell>{item.nama_obat}</TableBodyCell>
+                <TableBodyCell>{index + 1}</TableBodyCell>
+                <TableBodyCell>{item.nama_barang}</TableBodyCell>
                 <TableBodyCell>{item.satuan}</TableBodyCell>
                 <TableBodyCell>{item.jml_stok}</TableBodyCell>
                 <TableBodyCell>
                   <div class="flex space-x-4">
-                    <Button
-                      on:click={() => {
-                        isStokObat = true;
-                        isDataObat = false;
-                        searchTermStok = item.nama_obat;
-                      }}
-                      color="blue"
-                      pill={true}
-                      class="!p-2"><EyeSolid class="w-6 h-6" /></Button
-                    ><Button color="yellow" pill={true} class="!p-2"
+                    <Button color="yellow" pill={true} class="!p-2"
                       ><PenSolid class="w-6 h-6" /></Button
                     ><Button color="red" pill={true} class="!p-2"
                       ><TrashBinSolid class="w-6 h-6" /></Button
@@ -626,13 +534,15 @@
           <TableHeadCell>Jumlah Stok</TableHeadCell>
         </TableHead>
         <TableBody tableBodyClass="divide-y">
-          <!-- {#each items_stok.filter((item) => item.nama_obat
+          <!-- {#each items_stok.filter((item) => item.nama_barang
               .toLowerCase()
               .includes(searchTermStok.toLowerCase())) as item} -->
-          {#each items_stok as item}
+          {#each items_stok.filter((item) => item.nama_barang
+              .toLowerCase()
+              .includes(searchTermBarang.toLowerCase())) as item, index}
             <TableBodyRow>
-              <TableBodyCell>{item.id_stok}</TableBodyCell>
-              <TableBodyCell>{item.nama_obat}</TableBodyCell>
+              <TableBodyCell>{index + 1}</TableBodyCell>
+              <TableBodyCell>{item.nama_barang}</TableBodyCell>
               <TableBodyCell>{item.no_batch}</TableBodyCell>
               <TableBodyCell>{item.harga_beli}</TableBodyCell>
               <TableBodyCell>{item.harga_jual}</TableBodyCell>
