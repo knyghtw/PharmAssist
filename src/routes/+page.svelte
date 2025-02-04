@@ -3,6 +3,7 @@
 
   import {
     Button,
+    Datepicker,
     Table,
     TableBody,
     TableBodyCell,
@@ -37,18 +38,23 @@
   import Database from "@tauri-apps/plugin-sql";
   import pbfService from "./services/pbfService";
   import barangService from "./services/barangService";
+  import stokService from "./services/stokService";
 
   let notificationGranted = false;
   let dropdownPBFOpen = $state(false);
   let clickCreateDataModal = $state(false);
   let clickCreatePBFModal = $state(false);
+  let clickCreateStokModal = $state(false);
   let clickEditPBFModal = $state(false);
   let isPBF = $state(true);
   let isDataObat = $state(false);
   let isStokObat = $state(false);
   let isTglExp = $state(false);
   let isStockAlert = $state(false);
-  let PBFDelAlert = $state(false);
+  let deleteConfirmation = $state(false);
+  let deletePBFAlert = $state(false);
+  let deleteBarangAlert = $state(false);
+  let deleteStokAlert = $state(false);
 
   // async function setupNotification() {
   //   notificationGranted = await isPermissionGranted();
@@ -73,7 +79,10 @@
   let searchPBF = $state("");
   let searchStockAlert = $state("");
   let selectedPBF = $state("Pilih PBF disini");
+  let selectedBarang = $state("");
+  let selectedStok = $state("");
   let selectedPBFId = $state(0);
+  let selectedStokId = $state(0);
 
   let items_barang = $state([
     {
@@ -108,30 +117,32 @@
   let nama_barang = $state("");
   let satuan = $state("");
 
+  let nomor_batch = $state("");
+  let harga_beli = $state(0);
+  let harga_jual = $state(0);
+  let tanggal_expired = $state(null);
+  let jumlah_stok = $state(0);
+
   async function getPBF() {
-    try {
-      const pbf = await pbfService.getItems();
-      items_pbf = pbf;
-    } catch (error) {
-      console.error(error);
-      alert("Gagal mengambil data");
-    }
+    const pbf = await pbfService.getItems();
+    items_pbf = pbf;
   }
 
   async function getBarang() {
-    try {
-      const barang = await barangService.getItems();
-      items_barang = barang;
-    } catch (error) {
-      console.error(error);
-      alert("Gagal mengambil data");
-    }
+    const barang = await barangService.getItems();
+    items_barang = barang;
+  }
+
+  async function getStok() {
+    const stok = await stokService.getItems();
+    items_stok = stok;
   }
 
   async function getItems() {
     try {
       await getPBF();
       await getBarang();
+      await getStok();
     } catch (error) {
       console.error(error);
       alert("Gagal mengambil data");
@@ -145,6 +156,7 @@
       const result = await pbfService.createItem(nama_pbf);
       alert(result.message);
       await getItems();
+      nama_pbf = "";
     } catch (error) {
       alert(error.message);
     }
@@ -155,10 +167,30 @@
       const result = await barangService.createItem(nama_barang, satuan);
       alert(result.message);
       await getItems();
+      nama_barang = "";
+      satuan = "";
     } catch (error) {
       alert(error.message);
     }
   }
+
+  // async function setStokObat() {
+  //   try {
+  //     const result = await stokService.createItem(
+  //       selectedPBFId,
+  //       nama_barang,
+  //       nomor_batch,
+  //       harga_beli,
+  //       harga_jual,
+  //       tanggal_expired,
+  //       jumlah_stok
+  //     );
+  //     alert(result.message);
+  //     await getItems();
+  //   } catch (error) {
+  //     alert(error.message);
+  //   }
+  // }
 
   async function updatePBF() {
     try {
@@ -181,6 +213,16 @@
     }
   }
 
+  async function deleteStok() {
+    try {
+      const result = await stokService.deleteItem(selectedStokId);
+      alert(result.message);
+      await getItems();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
   async function resetPBF() {
     try {
       const result = await pbfService.resetPBF();
@@ -190,21 +232,59 @@
       alert(error.message);
     }
   }
+
+  async function resetStok() {
+    try {
+      const result = await stokService.resetStok();
+      alert(result.message);
+      await getItems();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  async function resetBarang() {
+    try {
+      const result = await barangService.resetBarang();
+      alert(result.message);
+      await getItems();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
 </script>
 
 <main class="m-4">
-  <Modal bind:open={PBFDelAlert} size="xs" autoclose>
+  <Modal bind:open={deleteConfirmation} size="xs" autoclose>
     <div class="text-center">
       <ExclamationCircleOutline
         class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200"
       />
+
       <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-        Apakah anda yakin ingin menghapus {selectedPBF}?
+        Apakah anda yakin ingin menghapus {#if deletePBFAlert}{selectedPBF}{:else if deleteBarangAlert}{selectedBarang}{:else if deleteStokAlert}{/if}?
       </h3>
-      <Button color="red" class="me-2" onclick={() => deletePBF()}>Ya</Button>
+      <Button
+        color="red"
+        class="me-2"
+        onclick={() => {
+          if (deletePBFAlert) {
+            deletePBF();
+          } else if (deleteBarangAlert) {
+            deleteBarang();
+          } else if (deleteStokAlert) {
+            deleteStok();
+          }
+        }}>Ya</Button
+      >
       <Button
         color="alternative"
-        onclick={() => (selectedPBF = "Pilih PBF disini")}>Tidak</Button
+        onclick={() => {
+          selectedPBF = "Pilih PBF disini";
+          deletePBFAlert = false;
+          deleteBarangAlert = false;
+          deleteStokAlert = false;
+        }}>Tidak</Button
       >
     </div>
   </Modal>
@@ -346,6 +426,109 @@
       </div>
     </form>
   </Modal>
+  <Modal bind:open={clickCreateStokModal} autoclose={false} outsideclose>
+    <form
+      class="flex flex-col space-y-4"
+      onsubmit={() => {
+        // setDataObat();
+        // clickCreateDataModal = false;
+        // selectedPBF = "Pilih PBF disini";
+      }}
+    >
+      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+        Tambah Data Stok Obat
+      </h3>
+      <hr />
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nama Obat</span>
+        <Select class="mt-2" bind:value={nama_barang} required>
+          {#each items_barang as item}
+            <option value={item.nama_barang}>{item.nama_barang}</option>
+          {/each}
+        </Select>
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">PBF</span>
+        <Select class="mt-2" bind:value={nama_pbf} required>
+          {#each items_pbf as item}
+            <option value={item.nama_pbf}>{item.nama_pbf}</option>
+          {/each}
+        </Select>
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nomor Batch</span>
+        <Input
+          bind:value={nomor_batch}
+          type="text"
+          name="nomor_batch"
+          placeholder="ABCDEF12345"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Harga Beli</span>
+        <Input
+          bind:value={harga_beli}
+          type="number"
+          name="harga_beli"
+          placeholder="10000"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Harga Jual</span>
+        <Input
+          bind:value={harga_jual}
+          type="number"
+          name="harga_jual"
+          placeholder="11000"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Tanggal Expired</span>
+        <Datepicker bind:value={tanggal_expired} required />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Jumlah Stok</span>
+        <Input
+          bind:value={jumlah_stok}
+          type="number"
+          name="jumlah_stok"
+          placeholder="50"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <hr />
+      <div class="flex flex-row justify-between space-x-4">
+        <Button
+          class="flex flex-1"
+          type="submit"
+          disabled={!nama_barang &&
+            !nama_pbf &&
+            !nomor_batch &&
+            !harga_beli &&
+            !harga_jual &&
+            !tanggal_expired &&
+            !jumlah_stok}>Simpan</Button
+        >
+        <Button
+          class="flex flex-1"
+          type="button"
+          color="alternative"
+          onclick={() => {
+            clickCreateDataModal = false;
+          }}
+        >
+          Batal
+        </Button>
+      </div>
+    </form>
+  </Modal>
   <div class="flex justify-between">
     <h1 class="text-3xl font-bold">PharmAssist</h1>
     <div
@@ -387,7 +570,7 @@
             selectedPBF = "Pilih PBF disini";
           }}>RESET PBF</Button
         >
-        <Button on:click={() => (clickCreatePBFModal = true)}>
+        <Button onclick={() => (clickCreatePBFModal = true)}>
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
       </div>
@@ -425,14 +608,14 @@
                       class="!p-2"
                       onclick={() => {
                         selectedPBF = item.nama_pbf;
-                        PBFDelAlert = true;
+                        deleteConfirmation = true;
+                        deletePBFAlert = true;
                       }}><TrashBinSolid class="w-6 h-6" /></Button
                     >
                   </div>
                 </TableBodyCell>
               </TableBodyRow>
             {/each}
-            <!-- {/each} -->
           </TableBody>
         </Table>
       </p>
@@ -455,6 +638,13 @@
           placeholder="Cari data obat..."
           bind:value={searchTermBarang}
         />
+        <Button
+          color="red"
+          on:click={() => {
+            resetBarang();
+            getItems();
+          }}>RESET DATA</Button
+        >
         <Button
           on:click={() => {
             clickCreateDataModal = true;
@@ -487,14 +677,20 @@
                   <div class="flex space-x-4">
                     <Button color="yellow" pill={true} class="!p-2"
                       ><PenSolid class="w-6 h-6" /></Button
-                    ><Button color="red" pill={true} class="!p-2"
-                      ><TrashBinSolid class="w-6 h-6" /></Button
+                    ><Button
+                      color="red"
+                      pill={true}
+                      class="!p-2"
+                      onclick={() => {
+                        selectedBarang = item.nama_barang;
+                        deleteConfirmation = true;
+                        deleteBarangAlert = true;
+                      }}><TrashBinSolid class="w-6 h-6" /></Button
                     >
                   </div>
                 </TableBodyCell>
               </TableBodyRow>
             {/each}
-            <!-- {/each} -->
           </TableBody>
         </Table>
       </p>
@@ -515,10 +711,17 @@
         <input
           type="text"
           class="border border-gray-400 p-2 rounded w-full flex-1"
-          placeholder="Cari data obat..."
+          placeholder="Cari data stok..."
           bind:value={searchTermStok}
         />
-        <Button>
+        <Button
+          color="red"
+          on:click={() => {
+            resetStok();
+            getItems();
+          }}>RESET STOK</Button
+        >
+        <Button onclick={() => (clickCreateStokModal = true)}>
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
       </div>
@@ -527,16 +730,17 @@
         <TableHead>
           <TableHeadCell>No</TableHeadCell>
           <TableHeadCell>Nama Obat</TableHeadCell>
+          <TableHeadCell>PBF</TableHeadCell>
           <TableHeadCell>No Batch</TableHeadCell>
           <TableHeadCell>Harga Beli</TableHeadCell>
           <TableHeadCell>Harga Jual</TableHeadCell>
           <TableHeadCell>Tanggal Expired</TableHeadCell>
           <TableHeadCell>Jumlah Stok</TableHeadCell>
+          <TableHeadCell>
+            <span class="sr-only">Aksi</span>
+          </TableHeadCell>
         </TableHead>
         <TableBody tableBodyClass="divide-y">
-          <!-- {#each items_stok.filter((item) => item.nama_barang
-              .toLowerCase()
-              .includes(searchTermStok.toLowerCase())) as item} -->
           {#each items_stok.filter((item) => item.nama_barang
               .toLowerCase()
               .includes(searchTermBarang.toLowerCase())) as item, index}
@@ -548,6 +752,16 @@
               <TableBodyCell>{item.harga_jual}</TableBodyCell>
               <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
               <TableBodyCell>{item.jumlah}</TableBodyCell>
+              <TableBodyCell>
+                <div class="flex space-x-4">
+                  <Button color="yellow" pill={true} class="!p-2">
+                    <PenSolid class="w-6 h-6" />
+                  </Button>
+                  <Button color="red" pill={true} class="!p-2"
+                    ><TrashBinSolid class="w-6 h-6" /></Button
+                  >
+                </div>
+              </TableBodyCell>
             </TableBodyRow>
           {/each}
           <!-- {/each} -->
