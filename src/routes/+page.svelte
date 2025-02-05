@@ -46,6 +46,8 @@
   let clickCreatePBFModal = $state(false);
   let clickCreateStokModal = $state(false);
   let clickEditPBFModal = $state(false);
+  let clickEditBarangModal = $state(false);
+  let clickEditStokModal = $state(false);
   let isPBF = $state(true);
   let isDataObat = $state(false);
   let isStokObat = $state(false);
@@ -82,6 +84,7 @@
   let selectedBarang = $state("");
   let selectedStok = $state("");
   let selectedPBFId = $state(0);
+  let selectedBarangId = $state(0);
   let selectedStokId = $state(0);
 
   let items_barang = $state([
@@ -151,6 +154,18 @@
 
   getItems();
 
+  async function getBarangItem(id_barang) {
+    try {
+      const barang = await barangService.getItem(id_barang);
+      selectedBarangId = barang.id_barang;
+      nama_barang = barang.nama_barang;
+      satuan = barang.satuan;
+    } catch (error) {
+      console.error(error);
+      alert("Gagal mengambil data barang");
+    }
+  }
+
   async function setPBF() {
     try {
       const result = await pbfService.createItem(nama_pbf);
@@ -192,6 +207,20 @@
   //   }
   // }
 
+  async function updateBarang(selectedBarangId, nama_barang, satuan) {
+    try {
+      const result = await barangService.updateItem(
+        selectedBarangId,
+        nama_barang,
+        satuan
+      );
+      alert(result.message);
+      await getItems();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
   async function updatePBF() {
     try {
       const result = await pbfService.updatePBF(nama_pbf, selectedPBFId);
@@ -207,6 +236,16 @@
       const result = await pbfService.deleteItem(selectedPBF);
       alert(result.message);
       selectedPBF = "Pilih PBF disini";
+      await getItems();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  async function deleteBarang() {
+    try {
+      const result = await barangService.deleteItem(selectedBarangId);
+      alert(result.message);
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -371,6 +410,59 @@
       </div>
     </form>
   </Modal>
+  <Modal bind:open={clickEditBarangModal} autoclose={false} outsideclose>
+    <form
+      class="flex flex-col space-y-4"
+      onsubmit={() => {
+        updateBarang(selectedBarangId, nama_barang, satuan);
+        clickEditBarangModal = false;
+      }}
+    >
+      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+        Edit Data Barang
+      </h3>
+      <hr />
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nama PBF</span>
+        <Input
+          bind:value={nama_barang}
+          type="text"
+          name="nama_barang"
+          placeholder="Paracetamol"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Satuan</span>
+        <Input
+          bind:value={satuan}
+          type="text"
+          name="satuan"
+          placeholder="Tablet"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <div class="flex flex-row justify-between space-x-4">
+        <Button
+          class="flex flex-1"
+          type="submit"
+          disabled={!nama_barang || !satuan}>Simpan</Button
+        >
+        <Button
+          class="flex flex-1"
+          type="submit"
+          color="alternative"
+          onclick={() => {
+            clickEditBarangModal = false;
+          }}
+        >
+          Batal
+        </Button>
+      </div>
+    </form>
+  </Modal>
   <Modal bind:open={clickCreateDataModal} autoclose={false} outsideclose>
     <form
       class="flex flex-col space-y-4"
@@ -441,11 +533,13 @@
       <hr />
       <Label class="space-y-2">
         <span class="text-gray-900">Nama Obat</span>
-        <Select class="mt-2" bind:value={nama_barang} required>
-          {#each items_barang as item}
-            <option value={item.nama_barang}>{item.nama_barang}</option>
-          {/each}
-        </Select>
+        <div class="flex space-x-2 max-h-full">
+          <Select class="mt-2" bind:value={nama_barang} required>
+            {#each items_barang as item}
+              <option value={item.nama_barang}>{item.nama_barang}</option>
+            {/each}
+          </Select>
+        </div>
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
@@ -675,13 +769,20 @@
                 <TableBodyCell>{item.jml_stok}</TableBodyCell>
                 <TableBodyCell>
                   <div class="flex space-x-4">
-                    <Button color="yellow" pill={true} class="!p-2"
-                      ><PenSolid class="w-6 h-6" /></Button
+                    <Button
+                      color="yellow"
+                      pill={true}
+                      class="!p-2"
+                      onclick={() => {
+                        getBarangItem(item.id_barang);
+                        clickEditBarangModal = true;
+                      }}><PenSolid class="w-6 h-6" /></Button
                     ><Button
                       color="red"
                       pill={true}
                       class="!p-2"
                       onclick={() => {
+                        selectedBarangId = item.id_barang;
                         selectedBarang = item.nama_barang;
                         deleteConfirmation = true;
                         deleteBarangAlert = true;
@@ -785,17 +886,6 @@
         incididunt ut labore et dolore magna aliqua.
       </p>
     </TabItem>
-    <TabItem
-      open={isStockAlert}
-      title="Stok < 25"
-      on:click={() => {
-        isPBF = false;
-        isDataObat = false;
-        isStokObat = false;
-        isTglExp = false;
-        isStockAlert = true;
-      }}
-    ></TabItem>
   </Tabs>
 </main>
 

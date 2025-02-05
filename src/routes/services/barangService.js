@@ -7,6 +7,23 @@ export default class barangService {
     return await Database.load(DB_PATH);
   }
 
+  static async getItem(id_barang) {
+    try {
+      const db = await this.getDB();
+      const result = await db.select(
+        "SELECT * FROM barang WHERE id_barang = $1",
+        [id_barang]
+      );
+      if (result.length === 0) {
+        throw new Error(`Barang dengan ID "${id_barang}" tidak ditemukan`);
+      }
+      return result[0];
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   static async getItems() {
     try {
       const db = await this.getDB();
@@ -41,6 +58,55 @@ export default class barangService {
       };
     } catch (error) {
       console.error(error);
+      throw error;
+    }
+  }
+
+  static async updateItem(id_barang, nama_barang, satuan) {
+    try {
+      const db = await this.getDB();
+      const dataCheck = await db.select(
+        "SELECT id_barang FROM barang WHERE id_barang = $1",
+        [id_barang]
+      );
+      if ((dataCheck.length = 0)) {
+        throw new Error(`Barang tidak ada dalam sistem`);
+      }
+      const result = await db.execute(
+        "UPDATE barang SET nama_barang = $1, satuan = $2 WHERE id_barang = $3",
+        [nama_barang, satuan, id_barang]
+      );
+      return {
+        success: true,
+        message: "Data barang berhasil diubah",
+        data: result,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  static async deleteItem(id_barang) {
+    try {
+      const db = await this.getDB();
+      const dataCheck = await db.select(
+        "SELECT id_barang FROM barang WHERE id_barang = $1",
+        [id_barang]
+      );
+      if ((dataCheck.length = 0)) {
+        throw new Error(`Barang tidak ada dalam sistem`);
+      }
+      const result = await db.execute(
+        "DELETE FROM barang WHERE id_barang = $1",
+        [id_barang]
+      );
+      return {
+        success: true,
+        message: "Data barang berhasil dihapus",
+      };
+    } catch (error) {
+      console.error("Error:", error);
       throw error;
     }
   }
