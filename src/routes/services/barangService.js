@@ -123,5 +123,24 @@ export default class barangService {
       console.error("Error:", error);
       throw error;
     }
+  }  
+
+  static async searchBarang(searchTerm) {
+    return new Promise((resolve, reject) => {
+      try {
+        const db = await this.getDB();
+        const query = ` SELECT id_barang, nama_barang, satuan FROM barang WHERE nama_barang LIKE ? ORDER BY nama_barang ASC`;
+        const searchParam = `%${searchTerm}%`;
+        db.all(query, [searchParam], (err, rows) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(rows);
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 }

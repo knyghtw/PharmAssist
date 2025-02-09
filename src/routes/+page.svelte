@@ -57,6 +57,7 @@
   let deletePBFAlert = $state(false);
   let deleteBarangAlert = $state(false);
   let deleteStokAlert = $state(false);
+  let showSuggestionsBarang = $state(false);
 
   // async function setupNotification() {
   //   notificationGranted = await isPermissionGranted();
@@ -533,13 +534,14 @@
       <hr />
       <Label class="space-y-2">
         <span class="text-gray-900">Nama Obat</span>
-        <div class="flex space-x-2 max-h-full">
+        
+        <!-- <div class="flex space-x-2 max-h-full">
           <Select class="mt-2" bind:value={nama_barang} required>
             {#each items_barang as item}
               <option value={item.nama_barang}>{item.nama_barang}</option>
             {/each}
           </Select>
-        </div>
+        </div> -->
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
