@@ -39,6 +39,7 @@
   import pbfService from "./services/pbfService";
   import barangService from "./services/barangService";
   import stokService from "./services/stokService";
+  import { event } from "@tauri-apps/api";
 
   let notificationGranted = false;
   let dropdownPBFOpen = $state(false);
@@ -116,6 +117,8 @@
       nama_pbf: "",
     },
   ]);
+
+  let suggestions = $state([]);
 
   let nama_pbf = $state("");
   let nama_barang = $state("");
@@ -292,6 +295,27 @@
       alert(error.message);
     }
   }
+
+  const autocompleteBarang = (event) => {
+    if (!event.target.value.trim()) {
+      suggestions = [];
+      showSuggestionsBarang = false;
+      return;
+    }
+
+    const filteredItems = items_barang.filter((item) =>
+      item.nama_barang.toLowerCase().includes(event.target.value.toLowerCase())
+    );
+
+    suggestions = filteredItems.slice(0, 5);
+    showSuggestionsBarang = true;
+  };
+
+  const selectSuggestion = (selectedItem) => {
+    nama_barang = selectedItem.nama_barang;
+    suggestions = [];
+    showSuggestionsBarang = false;
+  };
 </script>
 
 <main class="m-4">
@@ -522,6 +546,7 @@
   <Modal bind:open={clickCreateStokModal} autoclose={false} outsideclose>
     <form
       class="flex flex-col space-y-4"
+      autocomplete="off"
       onsubmit={() => {
         // setDataObat();
         // clickCreateDataModal = false;
@@ -534,14 +559,29 @@
       <hr />
       <Label class="space-y-2">
         <span class="text-gray-900">Nama Obat</span>
-        
-        <!-- <div class="flex space-x-2 max-h-full">
-          <Select class="mt-2" bind:value={nama_barang} required>
-            {#each items_barang as item}
-              <option value={item.nama_barang}>{item.nama_barang}</option>
+        <Input
+          bind:value={nama_barang}
+          type="text"
+          name="nama_barang"
+          placeholder="Paracetamol"
+          class="font-normal"
+          onkeydown={autocompleteBarang}
+          required
+        />
+        {#if showSuggestionsBarang && suggestions.length > 0}
+          <div
+            class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
+          >
+            {#each suggestions as item}
+              <div
+                class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onclick={() => selectSuggestion(item)}
+              >
+                {item.nama_barang}
+              </div>
             {/each}
-          </Select>
-        </div> -->
+          </div>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
