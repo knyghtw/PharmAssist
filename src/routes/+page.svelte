@@ -61,6 +61,7 @@
   let deleteBarangAlert = $state(false);
   let deleteStokAlert = $state(false);
   let showSuggestionsBarang = $state(false);
+  let showSuggestionPBF = $state(false);
 
   // async function setupNotification() {
   //   notificationGranted = await isPermissionGranted();
@@ -299,7 +300,6 @@
   }
 
   const autocompleteBarang = (event) => {
-    console.log("nama_barang.length = " + nama_barang.length);
     if (nama_barang.length <= 1) {
       suggestions = [];
       showSuggestionsBarang = false;
@@ -314,10 +314,31 @@
     showSuggestionsBarang = true;
   };
 
-  const selectSuggestion = (selectedItem) => {
+  const autocompletePBF = (event) => {
+    if (nama_pbf.length <= 1) {
+      suggestions = [];
+      showSuggestionPBF = false;
+      return;
+    }
+
+    const filteredItems = items_pbf.filter((item) =>
+      item.nama_pbf.toLowerCase().includes(event.target.value.toLowerCase())
+    );
+
+    suggestions = filteredItems.slice(0, 5);
+    showSuggestionPBF = true;
+  };
+
+  const selectSuggestionBarang = (selectedItem) => {
     nama_barang = selectedItem.nama_barang;
     suggestions = [];
     showSuggestionsBarang = false;
+  };
+
+  const selectSuggestionPBF = (selectedItem) => {
+    nama_pbf = selectedItem.nama_pbf;
+    suggestions = [];
+    showSuggestionPBF = false;
   };
 </script>
 
@@ -569,8 +590,6 @@
           placeholder="Paracetamol"
           class="font-normal"
           onkeydown={autocompleteBarang}
-          onfocus={autocompleteBarang}
-          onfocusout={() => (showSuggestionsBarang = false)}
           required
         />
         {#if showSuggestionsBarang && suggestions.length > 0}
@@ -582,7 +601,7 @@
               <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div
                 class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onclick={() => selectSuggestion(item)}
+                onclick={() => selectSuggestionBarang(item)}
               >
                 {item.nama_barang}
               </div>
@@ -592,11 +611,31 @@
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
-        <Select class="mt-2" bind:value={nama_pbf} required>
-          {#each items_pbf as item}
-            <option value={item.nama_pbf}>{item.nama_pbf}</option>
-          {/each}
-        </Select>
+        <Input
+          bind:value={nama_pbf}
+          type="text"
+          name="nama_pbf"
+          placeholder="PT ABC"
+          class="font-normal"
+          onkeydown={autocompletePBF}
+          required
+        />
+        {#if showSuggestionPBF && suggestions.length > 0}
+          <div
+            class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
+          >
+            {#each suggestions as item}
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
+              <div
+                class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onclick={() => selectSuggestionPBF(item)}
+              >
+                {item.nama_pbf}
+              </div>
+            {/each}
+          </div>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Nomor Batch</span>
