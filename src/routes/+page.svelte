@@ -41,6 +41,8 @@
   import stokService from "./services/stokService";
   import { event } from "@tauri-apps/api";
 
+  let inputRef;
+
   let notificationGranted = false;
   let dropdownPBFOpen = $state(false);
   let clickCreateDataModal = $state(false);
@@ -297,7 +299,8 @@
   }
 
   const autocompleteBarang = (event) => {
-    if (!event.target.value.trim()) {
+    console.log("nama_barang.length = " + nama_barang.length);
+    if (nama_barang.length <= 1) {
       suggestions = [];
       showSuggestionsBarang = false;
       return;
@@ -566,6 +569,8 @@
           placeholder="Paracetamol"
           class="font-normal"
           onkeydown={autocompleteBarang}
+          onfocus={autocompleteBarang}
+          onfocusout={() => (showSuggestionsBarang = false)}
           required
         />
         {#if showSuggestionsBarang && suggestions.length > 0}
@@ -573,6 +578,8 @@
             class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
           >
             {#each suggestions as item}
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div
                 class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                 onclick={() => selectSuggestion(item)}
