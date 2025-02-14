@@ -76,6 +76,13 @@ pub fn run() {
                     FOREIGN KEY (id_pbf) REFERENCES pbf(id_pbf)
                 );",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 5,
+            description: "add_tanggal_column_to_stok_obat",
+            sql: "ALTER TABLE stok_obat
+                  ADD COLUMN tanggal DATETIME DEFAULT CURRENT_TIMESTAMP;",
+            kind: MigrationKind::Up,
         },        
     ];
 
