@@ -10,51 +10,8 @@ fn greet(name: &str) -> String {
 pub fn run() {
     let migrations = vec![Migration {
         version: 1,
-        description: "create_initial_tables",
+        description: "create_new_tables",
         sql: "CREATE TABLE IF NOT EXISTS barang (
-                id_barang INT PRIMARY KEY,
-                nama_obat VARCHAR,
-                satuan VARCHAR,
-                total_stok INT
-            );
-            CREATE TABLE IF NOT EXISTS pbf (
-                id_pbf INT PRIMARY KEY,
-                nama_pbf VARCHAR
-            );
-            CREATE TABLE IF NOT EXISTS stok_obat (
-                id_stok INT PRIMARY KEY,
-                id_barang INT,
-                id_pbf INT,
-                no_batch VARCHAR,
-                harga_beli_per_satuan DECIMAL,
-                harga_jual_per_satuan DECIMAL,
-                tanggal_expired DATE,
-                jumlah_stok INT,
-                FOREIGN KEY (id_barang) REFERENCES barang(id_barang),
-                FOREIGN KEY (id_pbf) REFERENCES pbf(id_pbf)
-            );",
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 2,
-            description: "add_unique_constraints",
-            sql: "CREATE UNIQUE INDEX idx_nama_obat ON barang(nama_obat);
-                 CREATE UNIQUE INDEX idx_nama_pbf ON pbf(nama_pbf);
-                 CREATE UNIQUE INDEX idx_batch_barang_pbf ON stok_obat(no_batch, id_barang, id_pbf);",
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 3,
-            description: "drop_existing_tables",
-            sql: "DROP TABLE IF EXISTS stok_obat;
-                 DROP TABLE IF EXISTS barang;
-                 DROP TABLE IF EXISTS pbf;",
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 4,
-            description: "create_new_tables",
-            sql: "CREATE TABLE IF NOT EXISTS barang (
                     id_barang INTEGER PRIMARY KEY,
                     nama_barang VARCHAR UNIQUE,
                     satuan VARCHAR
@@ -72,19 +29,12 @@ pub fn run() {
                     harga_jual_per_satuan DECIMAL,
                     tanggal_expired DATE,
                     jumlah_stok INTEGER,
+                    tanggal DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (id_barang) REFERENCES barang(id_barang),
                     FOREIGN KEY (id_pbf) REFERENCES pbf(id_pbf)
                 );",
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 5,
-            description: "add_tanggal_column_to_stok_obat",
-            sql: "ALTER TABLE stok_obat
-                  ADD COLUMN tanggal DATETIME DEFAULT CURRENT_TIMESTAMP;",
-            kind: MigrationKind::Up,
-        },        
-    ];
+        kind: MigrationKind::Up,
+    }];
 
     tauri::Builder::default()
         .plugin(
