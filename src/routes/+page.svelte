@@ -4,6 +4,9 @@
   import {
     Button,
     Datepicker,
+    Dropdown,
+    DropdownItem,
+    DropdownHeader,
     Table,
     TableBody,
     TableBodyCell,
@@ -26,6 +29,8 @@
   } from "@tauri-apps/plugin-notification";
 
   import {
+    AdjustmentsHorizontalSolid,
+    CheckCircleOutline,
     PlusOutline,
     BellSolid,
     EyeSolid,
@@ -60,8 +65,13 @@
   let deletePBFAlert = $state(false);
   let deleteBarangAlert = $state(false);
   let deleteStokAlert = $state(false);
+  let resetConfirmation = $state(false);
+  let resetPBFAlert = $state(false);
+  let resetBarangAlert = $state(false);
+  let resetStokAlert = $state(false);
+  let resetSuccess = $state(false);
   let showSuggestionsBarang = $state(false);
-  let showSuggestionPBF = $state(false);
+  let showSuggestionsPBF = $state(false);
 
   // async function setupNotification() {
   //   notificationGranted = await isPermissionGranted();
@@ -121,7 +131,8 @@
     },
   ]);
 
-  let suggestions = $state([]);
+  let suggestionsBarang = $state([]);
+  let suggestionsPBF = $state([]);
 
   let nama_pbf = $state("");
   let nama_barang = $state("");
@@ -196,23 +207,23 @@
     }
   }
 
-  // async function setStokObat() {
-  //   try {
-  //     const result = await stokService.createItem(
-  //       selectedPBFId,
-  //       nama_barang,
-  //       nomor_batch,
-  //       harga_beli,
-  //       harga_jual,
-  //       tanggal_expired,
-  //       jumlah_stok
-  //     );
-  //     alert(result.message);
-  //     await getItems();
-  //   } catch (error) {
-  //     alert(error.message);
-  //   }
-  // }
+  async function setStokObat() {
+    try {
+      const result = await stokService.createItem(
+        selectedPBFId,
+        nama_barang,
+        nomor_batch,
+        harga_beli,
+        harga_jual,
+        tanggal_expired,
+        jumlah_stok
+      );
+      alert(result.message);
+      await getItems();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
 
   async function updateBarang(selectedBarangId, nama_barang, satuan) {
     try {
@@ -272,7 +283,7 @@
   async function resetPBF() {
     try {
       const result = await pbfService.resetPBF();
-      alert(result.message);
+      resetSuccess = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -282,7 +293,7 @@
   async function resetStok() {
     try {
       const result = await stokService.resetStok();
-      alert(result.message);
+      resetSuccess = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -292,7 +303,7 @@
   async function resetBarang() {
     try {
       const result = await barangService.resetBarang();
-      alert(result.message);
+      resetSuccess = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -301,7 +312,7 @@
 
   const autocompleteBarang = (event) => {
     if (nama_barang.length <= 1) {
-      suggestions = [];
+      suggestionsBarang = [];
       showSuggestionsBarang = false;
       return;
     }
@@ -310,14 +321,14 @@
       item.nama_barang.toLowerCase().includes(event.target.value.toLowerCase())
     );
 
-    suggestions = filteredItems.slice(0, 5);
+    suggestionsBarang = filteredItems.slice(0, 5);
     showSuggestionsBarang = true;
   };
 
   const autocompletePBF = (event) => {
     if (nama_pbf.length <= 1) {
-      suggestions = [];
-      showSuggestionPBF = false;
+      suggestionsPBF = [];
+      showSuggestionsPBF = false;
       return;
     }
 
@@ -325,25 +336,80 @@
       item.nama_pbf.toLowerCase().includes(event.target.value.toLowerCase())
     );
 
-    suggestions = filteredItems.slice(0, 5);
-    showSuggestionPBF = true;
+    suggestionsPBF = filteredItems.slice(0, 5);
+    showSuggestionsPBF = true;
   };
 
   const selectSuggestionBarang = (selectedItem) => {
     nama_barang = selectedItem.nama_barang;
-    suggestions = [];
+    suggestionsBarang = [];
     showSuggestionsBarang = false;
   };
 
   const selectSuggestionPBF = (selectedItem) => {
     nama_pbf = selectedItem.nama_pbf;
-    suggestions = [];
-    showSuggestionPBF = false;
+    suggestionsPBF = [];
+    showSuggestionsPBF = false;
   };
 </script>
 
 <main class="m-4">
-  <Modal bind:open={deleteConfirmation} size="xs" autoclose>
+  <Modal bind:open={resetConfirmation} size="xs" autoclose outsideclose>
+    <div class="text-center">
+      <ExclamationCircleOutline
+        class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200"
+      />
+
+      <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+        Apakah anda yakin ingin menghapus seluruh data <b
+          >{#if resetPBFAlert}PBF{:else if resetBarangAlert}Data Obat{:else if resetStokAlert}Stok
+            Obat{/if}</b
+        >?
+      </h3>
+      <Button
+        color="red"
+        class="me-2"
+        onclick={() => {
+          if (resetPBFAlert) {
+            resetPBF();
+          } else if (resetBarangAlert) {
+            resetBarang();
+          } else if (resetStokAlert) {
+            resetStok();
+          }
+          getItems();
+          resetConfirmation = false;
+        }}>Ya</Button
+      >
+      <Button
+        color="alternative"
+        onclick={() => {
+          selectedPBF = "Pilih PBF disini";
+          resetPBFAlert = false;
+          resetBarangAlert = false;
+          resetStokAlert = false;
+        }}>Tidak</Button
+      >
+    </div>
+  </Modal>
+  <Modal bind:open={resetSuccess} size="xs" autoclose outsideclose>
+    <div class="text-center">
+      <CheckCircleOutline
+        class="mx-auto mb-4 text-green-400 w-12 h-12 dark:text-green-200"
+      />
+      <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+        Data berhasil dibersihkan
+      </h3>
+      <Button
+        color="green"
+        class="me-2"
+        onclick={() => {
+          resetSuccess = false;
+        }}>Tutup</Button
+      >
+    </div>
+  </Modal>
+  <Modal bind:open={deleteConfirmation} size="xs" autoclose outsideclose>
     <div class="text-center">
       <ExclamationCircleOutline
         class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200"
@@ -572,9 +638,8 @@
       class="flex flex-col space-y-4"
       autocomplete="off"
       onsubmit={() => {
-        // setDataObat();
-        // clickCreateDataModal = false;
-        // selectedPBF = "Pilih PBF disini";
+        setDataStokObat();
+        clickCreateStokModal = false;
       }}
     >
       <h3 class="text-xl font-medium text-gray-900 dark:text-white">
@@ -583,59 +648,69 @@
       <hr />
       <Label class="space-y-2">
         <span class="text-gray-900">Nama Obat</span>
-        <Input
-          bind:value={nama_barang}
-          type="text"
-          name="nama_barang"
-          placeholder="Paracetamol"
-          class="font-normal"
-          onkeydown={autocompleteBarang}
-          required
-        />
-        {#if showSuggestionsBarang && suggestions.length > 0}
-          <div
-            class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
-          >
-            {#each suggestions as item}
-              <!-- svelte-ignore a11y_click_events_have_key_events -->
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
-              <div
-                class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onclick={() => selectSuggestionBarang(item)}
-              >
-                {item.nama_barang}
-              </div>
-            {/each}
-          </div>
-        {/if}
+        <div onfocusout={() => (showSuggestionsBarang = false)}>
+          <Input
+            bind:value={nama_barang}
+            type="text"
+            name="nama_barang"
+            placeholder="Paracetamol"
+            class="font-normal"
+            onkeydown={autocompleteBarang}
+            onfocus={() => {
+              if (nama_barang.length > 0) showSuggestionsBarang = true;
+            }}
+            required
+          />
+          {#if showSuggestionsBarang && suggestionsBarang.length > 0}
+            <div
+              class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
+            >
+              {#each suggestionsBarang as item}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div
+                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onmousedown={() => selectSuggestionBarang(item)}
+                >
+                  {item.nama_barang}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
-        <Input
-          bind:value={nama_pbf}
-          type="text"
-          name="nama_pbf"
-          placeholder="PT ABC"
-          class="font-normal"
-          onkeydown={autocompletePBF}
-          required
-        />
-        {#if showSuggestionPBF && suggestions.length > 0}
-          <div
-            class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
-          >
-            {#each suggestions as item}
-              <!-- svelte-ignore a11y_click_events_have_key_events -->
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
-              <div
-                class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onclick={() => selectSuggestionPBF(item)}
-              >
-                {item.nama_pbf}
-              </div>
-            {/each}
-          </div>
-        {/if}
+        <div onfocusout={() => (showSuggestionsPBF = false)}>
+          <Input
+            bind:value={nama_pbf}
+            type="text"
+            name="nama_pbf"
+            placeholder="PT ABC"
+            class="font-normal"
+            onkeydown={autocompletePBF}
+            onfocus={() => {
+              if (nama_pbf.length > 0) showSuggestionsPBF = true;
+            }}
+            required
+          />
+          {#if showSuggestionsPBF && suggestionsPBF.length > 0}
+            <div
+              class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
+            >
+              {#each suggestionsPBF as item}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div
+                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onmousedown={() => selectSuggestionPBF(item)}
+                >
+                  {item.nama_pbf}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Nomor Batch</span>
@@ -713,15 +788,53 @@
   </Modal>
   <div class="flex justify-between">
     <h1 class="text-3xl font-bold">PharmAssist</h1>
-    <div
-      id="bell"
-      class="inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400 hover:cursor-pointer"
-    >
-      <BellSolid class="w-8 h-8" />
-      <div class="flex relative">
-        <div
-          class="inline-flex relative -top-2 end-4 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
-        ></div>
+    <div class="flex space-x-2">
+      <div
+        id="appSettings"
+        class="inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400 hover:cursor-pointer"
+      >
+        <AdjustmentsHorizontalSolid class="w-8 h-8" />
+      </div>
+      <Dropdown triggeredBy="#appSettings">
+        <div slot="header" class="text-center py-2 font-bold">Pengaturan</div>
+        <DropdownItem
+          class="flex space-x-4 rtl:space-x-reverse"
+          onclick={() => {
+            resetConfirmation = true;
+            resetPBFAlert = true;
+          }}
+        >
+          Reset PBF
+        </DropdownItem>
+        <DropdownItem
+          class="flex space-x-4 rtl:space-x-reverse"
+          onclick={() => {
+            resetConfirmation = true;
+            resetBarangAlert = true;
+          }}
+        >
+          Reset Data Obat
+        </DropdownItem>
+        <DropdownItem
+          class="flex space-x-4 rtl:space-x-reverse"
+          onclick={() => {
+            resetConfirmation = true;
+            resetStokAlert = true;
+          }}
+        >
+          Reset Stok Obat
+        </DropdownItem>
+      </Dropdown>
+      <div
+        id="bell"
+        class="inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400 hover:cursor-pointer"
+      >
+        <BellSolid class="w-8 h-8" />
+        <div class="flex relative">
+          <div
+            class="inline-flex relative -top-2 end-4 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
+          ></div>
+        </div>
       </div>
     </div>
   </div>
@@ -918,6 +1031,7 @@
       <Table innerDivClass="left-0 my-2" hoverable={true}>
         <TableHead>
           <TableHeadCell>No</TableHeadCell>
+          <TableHeadCell>Tgl Pengisian</TableHeadCell>
           <TableHeadCell>Nama Obat</TableHeadCell>
           <TableHeadCell>PBF</TableHeadCell>
           <TableHeadCell>No Batch</TableHeadCell>
@@ -935,6 +1049,7 @@
               .includes(searchTermBarang.toLowerCase())) as item, index}
             <TableBodyRow>
               <TableBodyCell>{index + 1}</TableBodyCell>
+              <TableBodyCell>{item.tanggal}</TableBodyCell>
               <TableBodyCell>{item.nama_barang}</TableBodyCell>
               <TableBodyCell>{item.no_batch}</TableBodyCell>
               <TableBodyCell>{item.harga_beli}</TableBodyCell>
