@@ -857,14 +857,6 @@
           placeholder="Cari data PBF..."
           bind:value={searchPBF}
         />
-        <Button
-          color="red"
-          on:click={() => {
-            resetPBF();
-            getItems();
-            selectedPBF = "Pilih PBF disini";
-          }}>RESET PBF</Button
-        >
         <Button onclick={() => (clickCreatePBFModal = true)}>
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
@@ -933,13 +925,6 @@
           placeholder="Cari data obat..."
           bind:value={searchTermBarang}
         />
-        <Button
-          color="red"
-          on:click={() => {
-            resetBarang();
-            getItems();
-          }}>RESET DATA</Button
-        >
         <Button
           on:click={() => {
             clickCreateDataModal = true;
@@ -1016,13 +1001,6 @@
           placeholder="Cari data stok..."
           bind:value={searchTermStok}
         />
-        <Button
-          color="red"
-          on:click={() => {
-            resetStok();
-            getItems();
-          }}>RESET STOK</Button
-        >
         <Button onclick={() => (clickCreateStokModal = true)}>
           <PlusOutline class="w-5 h-5 me-2" />Tambah Data
         </Button>
