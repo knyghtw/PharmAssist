@@ -70,6 +70,7 @@
   let resetBarangAlert = $state(false);
   let resetStokAlert = $state(false);
   let resetSuccess = $state(false);
+  let createDataSuccess = $state(false);
   let showSuggestionsBarang = $state(false);
   let showSuggestionsPBF = $state(false);
 
@@ -104,7 +105,7 @@
 
   let items_barang = $state([
     {
-      id_obat: 0,
+      id_barang: 0,
       nama_barang: "",
       satuan: "",
       jml_stok: 0,
@@ -114,7 +115,7 @@
   let items_stok = $state([
     {
       id_stok: 0,
-      id_obat: null,
+      id_barang: null,
       nama_barang: "",
       no_batch: "",
       harga_beli: null,
@@ -187,7 +188,7 @@
   async function setPBF() {
     try {
       const result = await pbfService.createItem(nama_pbf);
-      alert(result.message);
+      createDataSuccess = true;
       await getItems();
       nama_pbf = "";
     } catch (error) {
@@ -198,7 +199,7 @@
   async function setDataObat() {
     try {
       const result = await barangService.createItem(nama_barang, satuan);
-      alert(result.message);
+      createDataSuccess = true;
       await getItems();
       nama_barang = "";
       satuan = "";
@@ -210,15 +211,24 @@
   async function setStokObat() {
     try {
       const result = await stokService.createItem(
+        selectedBarangId,
         selectedPBFId,
-        nama_barang,
         nomor_batch,
         harga_beli,
         harga_jual,
-        tanggal_expired,
+        tanggal_expired.toLocaleDateString(),
         jumlah_stok
       );
-      alert(result.message);
+      createDataSuccess = true;
+      nama_barang = "";
+      nama_pbf = "";
+      selectedBarangId = 0;
+      selectedPBFId = 0;
+      nomor_batch = "";
+      harga_beli = 0;
+      harga_jual = 0;
+      tanggal_expired = null;
+      jumlah_stok = 0;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -342,14 +352,18 @@
 
   const selectSuggestionBarang = (selectedItem) => {
     nama_barang = selectedItem.nama_barang;
+    selectedBarangId = selectedItem.id_barang;
     suggestionsBarang = [];
     showSuggestionsBarang = false;
+    console.log("ID Barang: " + selectedBarangId);
   };
 
   const selectSuggestionPBF = (selectedItem) => {
     nama_pbf = selectedItem.nama_pbf;
+    selectedPBFId = selectedItem.id_pbf;
     suggestionsPBF = [];
     showSuggestionsPBF = false;
+    console.log("ID PBF: " + selectedPBFId);
   };
 </script>
 
@@ -405,6 +419,23 @@
         class="me-2"
         onclick={() => {
           resetSuccess = false;
+        }}>Tutup</Button
+      >
+    </div>
+  </Modal>
+  <Modal bind:open={createDataSuccess} size="xs" autoclose outsideclose>
+    <div class="text-center">
+      <CheckCircleOutline
+        class="mx-auto mb-4 text-green-400 w-12 h-12 dark:text-green-200"
+      />
+      <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+        Data berhasil ditambahkan
+      </h3>
+      <Button
+        color="green"
+        class="me-2"
+        onclick={() => {
+          createDataSuccess = false;
         }}>Tutup</Button
       >
     </div>
@@ -638,7 +669,7 @@
       class="flex flex-col space-y-4"
       autocomplete="off"
       onsubmit={() => {
-        setDataStokObat();
+        setStokObat();
         clickCreateStokModal = false;
       }}
     >
@@ -765,12 +796,12 @@
         <Button
           class="flex flex-1"
           type="submit"
-          disabled={!nama_barang &&
-            !nama_pbf &&
-            !nomor_batch &&
-            !harga_beli &&
-            !harga_jual &&
-            !tanggal_expired &&
+          disabled={!selectedBarangId ||
+            !selectedPBFId ||
+            !nomor_batch ||
+            !harga_beli ||
+            !harga_jual ||
+            !tanggal_expired ||
             !jumlah_stok}>Simpan</Button
         >
         <Button
@@ -1029,11 +1060,20 @@
               <TableBodyCell>{index + 1}</TableBodyCell>
               <TableBodyCell>{item.tanggal}</TableBodyCell>
               <TableBodyCell>{item.nama_barang}</TableBodyCell>
+              <TableBodyCell>{item.nama_pbf}</TableBodyCell>
               <TableBodyCell>{item.no_batch}</TableBodyCell>
-              <TableBodyCell>{item.harga_beli}</TableBodyCell>
-              <TableBodyCell>{item.harga_jual}</TableBodyCell>
+              <TableBodyCell
+                >Rp. {item.harga_beli_per_satuan.toLocaleString(
+                  "id-ID"
+                )}</TableBodyCell
+              >
+              <TableBodyCell
+                >Rp. {item.harga_jual_per_satuan.toLocaleString(
+                  "id-ID"
+                )}</TableBodyCell
+              >
               <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
-              <TableBodyCell>{item.jumlah}</TableBodyCell>
+              <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
               <TableBodyCell>
                 <div class="flex space-x-4">
                   <Button color="yellow" pill={true} class="!p-2">
