@@ -1117,7 +1117,17 @@
           {#each expw_items_stok
             .filter((item) => item.tanggal_expired)
             .slice(0, 3) as item}
-            <DropdownItem class="flex space-x-4 rtl:space-x-reverse">
+            <DropdownItem
+              class="flex space-x-4 rtl:space-x-reverse"
+              onclick={() => {
+                isPBF = false;
+                isDataObat = false;
+                isStokObat = false;
+                isTglExp = true;
+                isStockAlert = false;
+                searchStockAlert = item.nama_barang;
+              }}
+            >
               <div class="flex flex-col space-y-2">
                 <div class="flex font-bold">{item.nama_barang}</div>
                 <div class="text-sm mb-1.5">
@@ -1131,7 +1141,7 @@
           <DropdownItem
             slot="footer"
             onclick={() => {
-              isPBF = true;
+              isPBF = false;
               isDataObat = false;
               isStokObat = false;
               isTglExp = true;
