@@ -69,8 +69,11 @@
   let resetPBFAlert = $state(false);
   let resetBarangAlert = $state(false);
   let resetStokAlert = $state(false);
-  let resetSuccess = $state(false);
-  let createDataSuccess = $state(false);
+  let addDataAction = $state(false);
+  let editDataAction = $state(false);
+  let deleteDataAction = $state(false);
+  let resetDataAction = $state(false);
+  let actionSuccess = $state(false);
   let showSuggestionsBarang = $state(false);
   let showSuggestionsPBF = $state(false);
 
@@ -125,6 +128,19 @@
     },
   ]);
 
+  let expw_items_stok = $state([
+    {
+      id_stok: 0,
+      id_barang: null,
+      nama_barang: "",
+      no_batch: "",
+      harga_beli: null,
+      harga_jual: null,
+      tanggal_expired: "",
+      jumlah: null,
+    },
+  ]);
+
   let items_pbf = $state([
     {
       id_pbf: 0,
@@ -160,11 +176,17 @@
     items_stok = stok;
   }
 
+  async function getExpiryWarnItems() {
+    const expiryWarnItems = await stokService.getExpiryWarnItems();
+    expw_items_stok = expiryWarnItems;
+  }
+
   async function getItems() {
     try {
       await getPBF();
       await getBarang();
       await getStok();
+      await getExpiryWarnItems();
     } catch (error) {
       console.error(error);
       alert("Gagal mengambil data");
@@ -188,7 +210,8 @@
   async function setPBF() {
     try {
       const result = await pbfService.createItem(nama_pbf);
-      createDataSuccess = true;
+      actionSuccess = true;
+      addDataAction = true;
       await getItems();
       nama_pbf = "";
     } catch (error) {
@@ -199,7 +222,8 @@
   async function setDataObat() {
     try {
       const result = await barangService.createItem(nama_barang, satuan);
-      createDataSuccess = true;
+      actionSuccess = true;
+      addDataAction = true;
       await getItems();
       nama_barang = "";
       satuan = "";
@@ -216,10 +240,11 @@
         nomor_batch,
         harga_beli,
         harga_jual,
-        tanggal_expired.toLocaleDateString(),
+        tanggal_expired.toISOString().slice(0, 10),
         jumlah_stok
       );
-      createDataSuccess = true;
+      actionSuccess = true;
+      addDataAction = true;
       nama_barang = "";
       nama_pbf = "";
       selectedBarangId = 0;
@@ -242,7 +267,8 @@
         nama_barang,
         satuan
       );
-      alert(result.message);
+      actionSuccess = true;
+      editDataAction = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -252,7 +278,37 @@
   async function updatePBF() {
     try {
       const result = await pbfService.updatePBF(nama_pbf, selectedPBFId);
-      alert(result.message);
+      actionSuccess = true;
+      editDataAction = true;
+      await getItems();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  async function updateStok(
+    selectedStokId,
+    selectedBarangId,
+    selectedPBFId,
+    no_batch,
+    harga_beli_per_satuan,
+    harga_jual_per_satuan,
+    tanggal_expired,
+    jumlah_stok
+  ) {
+    try {
+      const result = await stokService.updateItem(
+        selectedStokId,
+        selectedBarangId,
+        selectedPBFId,
+        no_batch,
+        harga_beli_per_satuan,
+        harga_jual_per_satuan,
+        tanggal_expired,
+        jumlah_stok
+      );
+      actionSuccess = true;
+      editDataAction = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -262,7 +318,8 @@
   async function deletePBF() {
     try {
       const result = await pbfService.deleteItem(selectedPBF);
-      alert(result.message);
+      actionSuccess = true;
+      deleteDataAction = true;
       selectedPBF = "Pilih PBF disini";
       await getItems();
     } catch (error) {
@@ -273,7 +330,8 @@
   async function deleteBarang() {
     try {
       const result = await barangService.deleteItem(selectedBarangId);
-      alert(result.message);
+      actionSuccess = true;
+      deleteDataAction = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -283,7 +341,8 @@
   async function deleteStok() {
     try {
       const result = await stokService.deleteItem(selectedStokId);
-      alert(result.message);
+      actionSuccess = true;
+      deleteDataAction = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -293,7 +352,8 @@
   async function resetPBF() {
     try {
       const result = await pbfService.resetPBF();
-      resetSuccess = true;
+      actionSuccess = true;
+      resetDataAction = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -303,7 +363,8 @@
   async function resetStok() {
     try {
       const result = await stokService.resetStok();
-      resetSuccess = true;
+      actionSuccess = true;
+      resetDataAction = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -313,7 +374,8 @@
   async function resetBarang() {
     try {
       const result = await barangService.resetBarang();
-      resetSuccess = true;
+      actionSuccess = true;
+      resetDataAction = true;
       await getItems();
     } catch (error) {
       alert(error.message);
@@ -355,7 +417,6 @@
     selectedBarangId = selectedItem.id_barang;
     suggestionsBarang = [];
     showSuggestionsBarang = false;
-    console.log("ID Barang: " + selectedBarangId);
   };
 
   const selectSuggestionPBF = (selectedItem) => {
@@ -363,7 +424,15 @@
     selectedPBFId = selectedItem.id_pbf;
     suggestionsPBF = [];
     showSuggestionsPBF = false;
-    console.log("ID PBF: " + selectedPBFId);
+  };
+
+  const formatTanggal = (isoDate) => {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 </script>
 
@@ -391,7 +460,10 @@
           } else if (resetStokAlert) {
             resetStok();
           }
-          getItems();
+          selectedPBF = "Pilih PBF disini";
+          resetPBFAlert = false;
+          resetBarangAlert = false;
+          resetStokAlert = false;
           resetConfirmation = false;
         }}>Ya</Button
       >
@@ -406,36 +478,23 @@
       >
     </div>
   </Modal>
-  <Modal bind:open={resetSuccess} size="xs" autoclose outsideclose>
+  <Modal bind:open={actionSuccess} size="xs" autoclose outsideclose>
     <div class="text-center">
       <CheckCircleOutline
         class="mx-auto mb-4 text-green-400 w-12 h-12 dark:text-green-200"
       />
       <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-        Data berhasil dibersihkan
+        Data berhasil {#if addDataAction}ditambahkan{:else if editDataAction}diubah{:else if deleteDataAction}dihapus{:else if resetDataAction}dibersihkan{/if}
       </h3>
       <Button
         color="green"
         class="me-2"
         onclick={() => {
-          resetSuccess = false;
-        }}>Tutup</Button
-      >
-    </div>
-  </Modal>
-  <Modal bind:open={createDataSuccess} size="xs" autoclose outsideclose>
-    <div class="text-center">
-      <CheckCircleOutline
-        class="mx-auto mb-4 text-green-400 w-12 h-12 dark:text-green-200"
-      />
-      <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-        Data berhasil ditambahkan
-      </h3>
-      <Button
-        color="green"
-        class="me-2"
-        onclick={() => {
-          createDataSuccess = false;
+          actionSuccess = false;
+          addDataAction = false;
+          editDataAction = false;
+          deleteDataAction = false;
+          resetDataAction = false;
         }}>Tutup</Button
       >
     </div>
@@ -447,7 +506,7 @@
       />
 
       <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-        Apakah anda yakin ingin menghapus {#if deletePBFAlert}{selectedPBF}{:else if deleteBarangAlert}{selectedBarang}{:else if deleteStokAlert}{/if}?
+        Apakah anda yakin ingin menghapus {#if deletePBFAlert}{selectedPBF}{:else if deleteBarangAlert}{selectedBarang}{:else if deleteStokAlert}Stok {selectedBarang}{/if}?
       </h3>
       <Button
         color="red"
@@ -460,6 +519,11 @@
           } else if (deleteStokAlert) {
             deleteStok();
           }
+          selectedPBF = "Pilih PBF disini";
+          deletePBFAlert = false;
+          deleteBarangAlert = false;
+          deleteStokAlert = false;
+          deleteConfirmation = false;
         }}>Ya</Button
       >
       <Button
@@ -520,7 +584,7 @@
       class="flex flex-col space-y-4"
       onsubmit={() => {
         updatePBF();
-        clickCreatePBFModal = false;
+        clickEditPBFModal = false;
         selectedPBF = "Pilih PBF disini";
       }}
     >
@@ -541,7 +605,7 @@
       </Label>
       <div class="flex flex-row justify-between space-x-4">
         <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
-          >Simpan</Button
+          >Ubah</Button
         >
         <Button
           class="flex flex-1"
@@ -594,7 +658,7 @@
         <Button
           class="flex flex-1"
           type="submit"
-          disabled={!nama_barang || !satuan}>Simpan</Button
+          disabled={!nama_barang || !satuan}>Ubah</Button
         >
         <Button
           class="flex flex-1"
@@ -602,6 +666,167 @@
           color="alternative"
           onclick={() => {
             clickEditBarangModal = false;
+          }}
+        >
+          Batal
+        </Button>
+      </div>
+    </form>
+  </Modal>
+  <Modal bind:open={clickEditStokModal} autoclose={false} outsideclose>
+    <form
+      class="flex flex-col space-y-4"
+      autocomplete="off"
+      onsubmit={() => {
+        updateStok(
+          selectedStokId,
+          selectedBarangId,
+          selectedPBFId,
+          nomor_batch,
+          harga_beli,
+          harga_jual,
+          tanggal_expired,
+          jumlah_stok
+        );
+        clickEditStokModal = false;
+      }}
+    >
+      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+        Edit Data Stok
+      </h3>
+      <hr />
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nama Obat</span>
+        <div onfocusout={() => (showSuggestionsBarang = false)}>
+          <Input
+            bind:value={nama_barang}
+            type="text"
+            name="nama_barang"
+            placeholder="Paracetamol"
+            class="font-normal"
+            onkeydown={autocompleteBarang}
+            onfocus={() => {
+              if (nama_barang.length > 0) showSuggestionsBarang = true;
+            }}
+            required
+          />
+          {#if showSuggestionsBarang && suggestionsBarang.length > 0}
+            <div
+              class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
+            >
+              {#each suggestionsBarang as item}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div
+                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onmousedown={() => selectSuggestionBarang(item)}
+                >
+                  {item.nama_barang}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">PBF</span>
+        <div onfocusout={() => (showSuggestionsPBF = false)}>
+          <Input
+            bind:value={nama_pbf}
+            type="text"
+            name="nama_pbf"
+            placeholder="PT ABC"
+            class="font-normal"
+            onkeydown={autocompletePBF}
+            onfocus={() => {
+              if (nama_pbf.length > 0) showSuggestionsPBF = true;
+            }}
+            required
+          />
+          {#if showSuggestionsPBF && suggestionsPBF.length > 0}
+            <div
+              class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
+            >
+              {#each suggestionsPBF as item}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div
+                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onmousedown={() => selectSuggestionPBF(item)}
+                >
+                  {item.nama_pbf}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nomor Batch</span>
+        <Input
+          bind:value={nomor_batch}
+          type="text"
+          name="nomor_batch"
+          placeholder="ABCDEF12345"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Harga Beli</span>
+        <Input
+          bind:value={harga_beli}
+          type="number"
+          name="harga_beli"
+          placeholder="10000"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Harga Jual</span>
+        <Input
+          bind:value={harga_jual}
+          type="number"
+          name="harga_jual"
+          placeholder="11000"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Tanggal Expired</span>
+        <Datepicker bind:value={tanggal_expired} required />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Jumlah Stok</span>
+        <Input
+          bind:value={jumlah_stok}
+          type="number"
+          name="jumlah_stok"
+          placeholder="50"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <div class="flex flex-row justify-between space-x-4">
+        <Button
+          class="flex flex-1"
+          type="submit"
+          disabled={!selectedBarangId ||
+            !selectedPBFId ||
+            !nomor_batch ||
+            !harga_beli ||
+            !harga_jual ||
+            !tanggal_expired ||
+            !jumlah_stok}>Ubah</Button
+        >
+        <Button
+          class="flex flex-1"
+          type="submit"
+          color="alternative"
+          onclick={() => {
+            clickEditStokModal = false;
           }}
         >
           Batal
@@ -1076,17 +1301,40 @@
               <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
               <TableBodyCell>
                 <div class="flex space-x-4">
-                  <Button color="yellow" pill={true} class="!p-2">
+                  <Button
+                    color="yellow"
+                    pill={true}
+                    class="!p-2"
+                    onclick={() => {
+                      selectedStokId = item.id_stok;
+                      selectedBarangId = item.id_barang;
+                      nama_barang = item.nama_barang;
+                      selectedPBFId = item.id_pbf;
+                      nama_pbf = item.nama_pbf;
+                      nomor_batch = item.no_batch;
+                      harga_beli = item.harga_beli_per_satuan;
+                      harga_jual = item.harga_jual_per_satuan;
+                      jumlah_stok = item.jumlah_stok;
+                      clickEditStokModal = true;
+                    }}
+                  >
                     <PenSolid class="w-6 h-6" />
                   </Button>
-                  <Button color="red" pill={true} class="!p-2"
-                    ><TrashBinSolid class="w-6 h-6" /></Button
+                  <Button
+                    color="red"
+                    pill={true}
+                    class="!p-2"
+                    onclick={() => {
+                      selectedStokId = item.id_stok;
+                      selectedBarang = item.nama_barang;
+                      deleteConfirmation = true;
+                      deleteStokAlert = true;
+                    }}><TrashBinSolid class="w-6 h-6" /></Button
                   >
                 </div>
               </TableBodyCell>
             </TableBodyRow>
           {/each}
-          <!-- {/each} -->
         </TableBody>
       </Table>
     </TabItem>
@@ -1101,11 +1349,51 @@
         isStockAlert = false;
       }}
     >
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        <b>Tanggal Expired:</b>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-        incididunt ut labore et dolore magna aliqua.
-      </p>
+      <input
+        type="text"
+        class="mb-4 border border-gray-400 p-2 rounded w-full flex-1"
+        placeholder="Cari data stok..."
+        bind:value={searchStockAlert}
+      />
+
+      <Table innerDivClass="left-0 my-2" hoverable={true}>
+        <TableHead>
+          <TableHeadCell>No</TableHeadCell>
+          <TableHeadCell>Nama Obat</TableHeadCell>
+          <TableHeadCell>PBF</TableHeadCell>
+          <TableHeadCell>No Batch</TableHeadCell>
+          <TableHeadCell>Harga Beli</TableHeadCell>
+          <TableHeadCell>Harga Jual</TableHeadCell>
+          <TableHeadCell>Tanggal Expired</TableHeadCell>
+          <TableHeadCell>Jumlah Stok</TableHeadCell>
+        </TableHead>
+        <TableBody tableBodyClass="divide-y">
+          {#each expw_items_stok.filter((item) => item.nama_barang
+              .toLowerCase()
+              .includes(searchTermBarang.toLowerCase())) as item, index}
+            <TableBodyRow>
+              <TableBodyCell>{index + 1}</TableBodyCell>
+              <TableBodyCell>{item.nama_barang}</TableBodyCell>
+              <TableBodyCell>{item.nama_pbf}</TableBodyCell>
+              <TableBodyCell>{item.no_batch}</TableBodyCell>
+              <TableBodyCell
+                >Rp. {item.harga_beli_per_satuan.toLocaleString(
+                  "id-ID"
+                )}</TableBodyCell
+              >
+              <TableBodyCell
+                >Rp. {item.harga_jual_per_satuan.toLocaleString(
+                  "id-ID"
+                )}</TableBodyCell
+              >
+              <TableBodyCell
+                >{formatTanggal(item.tanggal_expired)}</TableBodyCell
+              >
+              <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
+            </TableBodyRow>
+          {/each}
+        </TableBody>
+      </Table>
     </TabItem>
   </Tabs>
 </main>
