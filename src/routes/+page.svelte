@@ -32,6 +32,7 @@
     AdjustmentsHorizontalSolid,
     CheckCircleOutline,
     PlusOutline,
+    BellActiveSolid,
     BellSolid,
     EyeSolid,
     ExclamationCircleOutline,
@@ -77,24 +78,8 @@
   let actionSuccess = $state(false);
   let showSuggestionsBarang = $state(false);
   let showSuggestionsPBF = $state(false);
-
-  // async function setupNotification() {
-  //   notificationGranted = await isPermissionGranted();
-
-  //   if (!notificationGranted) {
-  //     const permission = await requestPermission();
-  //     notificationGranted = permission === "granted";
-  //   }
-
-  //   if (notificationGranted) {
-  //     sendNotification({
-  //       title: "Notifikasi",
-  //       body: "Notifikasi berhasil diaktifkan",
-  //     });
-  //   }
-  // }
-
-  // setupNotification();
+  let newNotification = $state(false);
+  let hasClickedNotification = $state(false);
 
   let searchTermBarang = $state("");
   let searchTermStok = $state("");
@@ -180,6 +165,11 @@
   async function getExpiryWarnItems() {
     const expiryWarnItems = await stokService.getExpiryWarnItems();
     expw_items_stok = expiryWarnItems;
+    if (expw_items_stok.length > 0 && !hasClickedNotification) {
+      newNotification = true;
+    } else {
+      newNotification = false;
+    }
   }
 
   async function getItems() {
@@ -194,7 +184,25 @@
     }
   }
 
+  async function setupNotification() {
+    notificationGranted = await isPermissionGranted();
+
+    if (!notificationGranted) {
+      const permission = await requestPermission();
+      notificationGranted = permission === "granted";
+    } else {
+      sendNotification({
+        title: "Peringatan Barang Expired",
+        body:
+          "Terdapat " +
+          expw_items_stok.length +
+          " barang yang akan mendekati tanggal kedaluwarsa",
+      });
+    }
+  }
+
   getItems();
+  setupNotification();
 
   async function getBarangItem(id_barang) {
     try {
@@ -305,7 +313,7 @@
         no_batch,
         harga_beli_per_satuan,
         harga_jual_per_satuan,
-        tanggal_expired,
+        tanggal_expired.toISOString().slice(0, 10),
         jumlah_stok
       );
       actionSuccess = true;
@@ -1084,15 +1092,59 @@
         </DropdownItem>
       </Dropdown>
       <div
-        id="bell"
+        id="itemExpNotification"
         class="inline-flex items-center text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400 hover:cursor-pointer"
+        data-placement="left-start"
       >
-        <BellSolid class="w-8 h-8" />
-        <div class="flex relative">
-          <div
-            class="inline-flex relative -top-2 end-4 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
-          ></div>
-        </div>
+        {#if newNotification && !hasClickedNotification}
+          <BellActiveSolid
+            class="w-8 h-8"
+            onclick={() => {
+              newNotification = false;
+              hasClickedNotification = true;
+            }}
+          />
+          <div class="flex relative">
+            <div
+              class="inline-flex relative -top-2 end-4 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
+            ></div>
+          </div>
+        {:else}
+          <BellSolid class="w-8 h-8" />
+        {/if}
+        <Dropdown triggeredBy="#itemExpNotification">
+          <div slot="header" class="text-center py-2 font-bold">Notifikasi</div>
+          {#each expw_items_stok
+            .filter((item) => item.tanggal_expired)
+            .slice(0, 3) as item}
+            <DropdownItem class="flex space-x-4 rtl:space-x-reverse">
+              <div class="flex flex-col space-y-2">
+                <div class="flex font-bold">{item.nama_barang}</div>
+                <div class="text-sm mb-1.5">
+                  Tgl Expired: <div class="text-sm font-bold text-primary-600">
+                    {formatTanggal(item.tanggal_expired)}
+                  </div>
+                </div>
+              </div>
+            </DropdownItem>
+          {/each}
+          <DropdownItem
+            slot="footer"
+            onclick={() => {
+              isPBF = true;
+              isDataObat = false;
+              isStokObat = false;
+              isTglExp = true;
+              isStockAlert = false;
+            }}
+            class="block py-2 -my-1 text-sm font-medium text-center text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white"
+          >
+            <div class="inline-flex items-center">
+              <EyeSolid class="me-2 w-4 h-4 text-gray-500" />
+              Lihat semua
+            </div>
+          </DropdownItem>
+        </Dropdown>
       </div>
     </div>
   </div>
