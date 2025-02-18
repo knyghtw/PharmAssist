@@ -36,6 +36,7 @@
     EyeSolid,
     ExclamationCircleOutline,
     ChevronDownOutline,
+    InfoCircleSolid,
     PenSolid,
     TrashBinSolid,
   } from "flowbite-svelte-icons";
@@ -506,7 +507,8 @@
       />
 
       <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-        Apakah anda yakin ingin menghapus {#if deletePBFAlert}{selectedPBF}{:else if deleteBarangAlert}{selectedBarang}{:else if deleteStokAlert}Stok {selectedBarang}{/if}?
+        Apakah anda yakin ingin menghapus {#if deletePBFAlert}{selectedPBF}{:else if deleteBarangAlert}{selectedBarang}{:else if deleteStokAlert}Stok
+          {selectedBarang}{/if}?
       </h3>
       <Button
         color="red"
@@ -1106,62 +1108,69 @@
         isStockAlert = false;
       }}
     >
-      <div class="flex space-x-4 mb-4 justify-between">
-        <input
-          type="text"
-          class="border border-gray-400 p-2 rounded w-full flex-1"
-          placeholder="Cari data PBF..."
-          bind:value={searchPBF}
-        />
-        <Button onclick={() => (clickCreatePBFModal = true)}>
-          <PlusOutline class="w-5 h-5 me-2" />Tambah Data
-        </Button>
-      </div>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        <Table innerDivClass="left-0 my-2" hoverable={true}>
-          <TableHead>
-            <TableHeadCell>No</TableHeadCell>
-            <TableHeadCell>Nama PBF</TableHeadCell>
-            <TableHeadCell>
-              <span class="sr-only">Aksi</span>
-            </TableHeadCell>
-          </TableHead>
-          <TableBody tableBodyClass="divide-y">
-            {#each items_pbf.filter((item) => item.nama_pbf
-                .toLowerCase()
-                .includes(searchPBF.toLowerCase())) as item, index}
-              <TableBodyRow>
-                <TableBodyCell>{index + 1}</TableBodyCell>
-                <TableBodyCell>{item.nama_pbf}</TableBodyCell>
-                <TableBodyCell>
-                  <div class="flex space-x-4">
-                    <Button
-                      color="yellow"
-                      pill={true}
-                      class="!p-2"
-                      onclick={() => {
-                        selectedPBFId = item.id_pbf;
-                        selectedPBF = item.nama_pbf;
-                        nama_pbf = item.nama_pbf;
-                        clickEditPBFModal = true;
-                      }}><PenSolid class="w-6 h-6" /></Button
-                    ><Button
-                      color="red"
-                      pill={true}
-                      class="!p-2"
-                      onclick={() => {
-                        selectedPBF = item.nama_pbf;
-                        deleteConfirmation = true;
-                        deletePBFAlert = true;
-                      }}><TrashBinSolid class="w-6 h-6" /></Button
-                    >
-                  </div>
-                </TableBodyCell>
-              </TableBodyRow>
-            {/each}
-          </TableBody>
-        </Table>
-      </p>
+      {#if items_pbf.length <= 0}
+        <div class="flex flex-col items-center space-y-4">
+          <InfoCircleSolid class="w-12 h-12 text-gray-500" />
+          <p class="text-md text-gray-500">Data kosong.</p>
+        </div>
+      {:else}
+        <div class="flex space-x-4 mb-4 justify-between">
+          <input
+            type="text"
+            class="border border-gray-400 p-2 rounded w-full flex-1"
+            placeholder="Cari data PBF..."
+            bind:value={searchPBF}
+          />
+          <Button onclick={() => (clickCreatePBFModal = true)}>
+            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
+          </Button>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          <Table innerDivClass="left-0 my-2" hoverable={true}>
+            <TableHead>
+              <TableHeadCell>No</TableHeadCell>
+              <TableHeadCell>Nama PBF</TableHeadCell>
+              <TableHeadCell>
+                <span class="sr-only">Aksi</span>
+              </TableHeadCell>
+            </TableHead>
+            <TableBody tableBodyClass="divide-y">
+              {#each items_pbf.filter((item) => item.nama_pbf
+                  .toLowerCase()
+                  .includes(searchPBF.toLowerCase())) as item, index}
+                <TableBodyRow>
+                  <TableBodyCell>{index + 1}</TableBodyCell>
+                  <TableBodyCell>{item.nama_pbf}</TableBodyCell>
+                  <TableBodyCell>
+                    <div class="flex space-x-4">
+                      <Button
+                        color="yellow"
+                        pill={true}
+                        class="!p-2"
+                        onclick={() => {
+                          selectedPBFId = item.id_pbf;
+                          selectedPBF = item.nama_pbf;
+                          nama_pbf = item.nama_pbf;
+                          clickEditPBFModal = true;
+                        }}><PenSolid class="w-6 h-6" /></Button
+                      ><Button
+                        color="red"
+                        pill={true}
+                        class="!p-2"
+                        onclick={() => {
+                          selectedPBF = item.nama_pbf;
+                          deleteConfirmation = true;
+                          deletePBFAlert = true;
+                        }}><TrashBinSolid class="w-6 h-6" /></Button
+                      >
+                    </div>
+                  </TableBodyCell>
+                </TableBodyRow>
+              {/each}
+            </TableBody>
+          </Table>
+        </p>
+      {/if}
     </TabItem>
     <TabItem
       open={isDataObat}
@@ -1174,69 +1183,76 @@
         isStockAlert = false;
       }}
     >
-      <div class="flex space-x-4 mb-4 justify-between">
-        <input
-          type="text"
-          class="border border-gray-400 p-2 rounded w-full flex-1"
-          placeholder="Cari data obat..."
-          bind:value={searchTermBarang}
-        />
-        <Button
-          on:click={() => {
-            clickCreateDataModal = true;
-            selectedPBF = "Pilih PBF disini";
-          }}
-        >
-          <PlusOutline class="w-5 h-5 me-2" />Tambah Data
-        </Button>
-      </div>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        <Table innerDivClass="left-0 my-2" hoverable={true}>
-          <TableHead>
-            <TableHeadCell>NO</TableHeadCell>
-            <TableHeadCell>NAMA OBAT</TableHeadCell>
-            <TableHeadCell>Satuan</TableHeadCell>
-            <TableHeadCell>
-              <span class="sr-only">Aksi</span>
-            </TableHeadCell>
-          </TableHead>
-          <TableBody tableBodyClass="divide-y">
-            {#each items_barang.filter((item) => item.nama_barang
-                .toLowerCase()
-                .includes(searchTermBarang.toLowerCase())) as item, index}
-              <TableBodyRow>
-                <TableBodyCell>{index + 1}</TableBodyCell>
-                <TableBodyCell>{item.nama_barang}</TableBodyCell>
-                <TableBodyCell>{item.satuan}</TableBodyCell>
-                <TableBodyCell>{item.jml_stok}</TableBodyCell>
-                <TableBodyCell>
-                  <div class="flex space-x-4">
-                    <Button
-                      color="yellow"
-                      pill={true}
-                      class="!p-2"
-                      onclick={() => {
-                        getBarangItem(item.id_barang);
-                        clickEditBarangModal = true;
-                      }}><PenSolid class="w-6 h-6" /></Button
-                    ><Button
-                      color="red"
-                      pill={true}
-                      class="!p-2"
-                      onclick={() => {
-                        selectedBarangId = item.id_barang;
-                        selectedBarang = item.nama_barang;
-                        deleteConfirmation = true;
-                        deleteBarangAlert = true;
-                      }}><TrashBinSolid class="w-6 h-6" /></Button
-                    >
-                  </div>
-                </TableBodyCell>
-              </TableBodyRow>
-            {/each}
-          </TableBody>
-        </Table>
-      </p>
+      {#if items_barang.length <= 0}
+        <div class="flex flex-col items-center space-y-4">
+          <InfoCircleSolid class="w-12 h-12 text-gray-500" />
+          <p class="text-md text-gray-500">Data kosong.</p>
+        </div>
+      {:else}
+        <div class="flex space-x-4 mb-4 justify-between">
+          <input
+            type="text"
+            class="border border-gray-400 p-2 rounded w-full flex-1"
+            placeholder="Cari data obat..."
+            bind:value={searchTermBarang}
+          />
+          <Button
+            on:click={() => {
+              clickCreateDataModal = true;
+              selectedPBF = "Pilih PBF disini";
+            }}
+          >
+            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
+          </Button>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          <Table innerDivClass="left-0 my-2" hoverable={true}>
+            <TableHead>
+              <TableHeadCell>NO</TableHeadCell>
+              <TableHeadCell>NAMA OBAT</TableHeadCell>
+              <TableHeadCell>Satuan</TableHeadCell>
+              <TableHeadCell>
+                <span class="sr-only">Aksi</span>
+              </TableHeadCell>
+            </TableHead>
+            <TableBody tableBodyClass="divide-y">
+              {#each items_barang.filter((item) => item.nama_barang
+                  .toLowerCase()
+                  .includes(searchTermBarang.toLowerCase())) as item, index}
+                <TableBodyRow>
+                  <TableBodyCell>{index + 1}</TableBodyCell>
+                  <TableBodyCell>{item.nama_barang}</TableBodyCell>
+                  <TableBodyCell>{item.satuan}</TableBodyCell>
+                  <TableBodyCell>{item.jml_stok}</TableBodyCell>
+                  <TableBodyCell>
+                    <div class="flex space-x-4">
+                      <Button
+                        color="yellow"
+                        pill={true}
+                        class="!p-2"
+                        onclick={() => {
+                          getBarangItem(item.id_barang);
+                          clickEditBarangModal = true;
+                        }}><PenSolid class="w-6 h-6" /></Button
+                      ><Button
+                        color="red"
+                        pill={true}
+                        class="!p-2"
+                        onclick={() => {
+                          selectedBarangId = item.id_barang;
+                          selectedBarang = item.nama_barang;
+                          deleteConfirmation = true;
+                          deleteBarangAlert = true;
+                        }}><TrashBinSolid class="w-6 h-6" /></Button
+                      >
+                    </div>
+                  </TableBodyCell>
+                </TableBodyRow>
+              {/each}
+            </TableBody>
+          </Table>
+        </p>
+      {/if}
     </TabItem>
     <TabItem
       open={isStokObat}
@@ -1250,93 +1266,100 @@
         searchTermStok = "";
       }}
     >
-      <div class="flex space-x-4 mb-4 justify-between">
-        <input
-          type="text"
-          class="border border-gray-400 p-2 rounded w-full flex-1"
-          placeholder="Cari data stok..."
-          bind:value={searchTermStok}
-        />
-        <Button onclick={() => (clickCreateStokModal = true)}>
-          <PlusOutline class="w-5 h-5 me-2" />Tambah Data
-        </Button>
-      </div>
+      {#if items_stok.length <= 0}
+        <div class="flex flex-col items-center space-y-4">
+          <InfoCircleSolid class="w-12 h-12 text-gray-500" />
+          <p class="text-md text-gray-500">Data kosong.</p>
+        </div>
+      {:else}
+        <div class="flex space-x-4 mb-4 justify-between">
+          <input
+            type="text"
+            class="border border-gray-400 p-2 rounded w-full flex-1"
+            placeholder="Cari data stok..."
+            bind:value={searchTermStok}
+          />
+          <Button onclick={() => (clickCreateStokModal = true)}>
+            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
+          </Button>
+        </div>
 
-      <Table innerDivClass="left-0 my-2" hoverable={true}>
-        <TableHead>
-          <TableHeadCell>No</TableHeadCell>
-          <TableHeadCell>Tgl Pengisian</TableHeadCell>
-          <TableHeadCell>Nama Obat</TableHeadCell>
-          <TableHeadCell>PBF</TableHeadCell>
-          <TableHeadCell>No Batch</TableHeadCell>
-          <TableHeadCell>Harga Beli</TableHeadCell>
-          <TableHeadCell>Harga Jual</TableHeadCell>
-          <TableHeadCell>Tanggal Expired</TableHeadCell>
-          <TableHeadCell>Jumlah Stok</TableHeadCell>
-          <TableHeadCell>
-            <span class="sr-only">Aksi</span>
-          </TableHeadCell>
-        </TableHead>
-        <TableBody tableBodyClass="divide-y">
-          {#each items_stok.filter((item) => item.nama_barang
-              .toLowerCase()
-              .includes(searchTermBarang.toLowerCase())) as item, index}
-            <TableBodyRow>
-              <TableBodyCell>{index + 1}</TableBodyCell>
-              <TableBodyCell>{item.tanggal}</TableBodyCell>
-              <TableBodyCell>{item.nama_barang}</TableBodyCell>
-              <TableBodyCell>{item.nama_pbf}</TableBodyCell>
-              <TableBodyCell>{item.no_batch}</TableBodyCell>
-              <TableBodyCell
-                >Rp. {item.harga_beli_per_satuan.toLocaleString(
-                  "id-ID"
-                )}</TableBodyCell
-              >
-              <TableBodyCell
-                >Rp. {item.harga_jual_per_satuan.toLocaleString(
-                  "id-ID"
-                )}</TableBodyCell
-              >
-              <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
-              <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
-              <TableBodyCell>
-                <div class="flex space-x-4">
-                  <Button
-                    color="yellow"
-                    pill={true}
-                    class="!p-2"
-                    onclick={() => {
-                      selectedStokId = item.id_stok;
-                      selectedBarangId = item.id_barang;
-                      nama_barang = item.nama_barang;
-                      selectedPBFId = item.id_pbf;
-                      nama_pbf = item.nama_pbf;
-                      nomor_batch = item.no_batch;
-                      harga_beli = item.harga_beli_per_satuan;
-                      harga_jual = item.harga_jual_per_satuan;
-                      jumlah_stok = item.jumlah_stok;
-                      clickEditStokModal = true;
-                    }}
-                  >
-                    <PenSolid class="w-6 h-6" />
-                  </Button>
-                  <Button
-                    color="red"
-                    pill={true}
-                    class="!p-2"
-                    onclick={() => {
-                      selectedStokId = item.id_stok;
-                      selectedBarang = item.nama_barang;
-                      deleteConfirmation = true;
-                      deleteStokAlert = true;
-                    }}><TrashBinSolid class="w-6 h-6" /></Button
-                  >
-                </div>
-              </TableBodyCell>
-            </TableBodyRow>
-          {/each}
-        </TableBody>
-      </Table>
+        <Table innerDivClass="left-0 my-2" hoverable={true}>
+          <TableHead>
+            <TableHeadCell>No</TableHeadCell>
+            <TableHeadCell>Tgl Pengisian</TableHeadCell>
+            <TableHeadCell>Nama Obat</TableHeadCell>
+            <TableHeadCell>PBF</TableHeadCell>
+            <TableHeadCell>No Batch</TableHeadCell>
+            <TableHeadCell>Harga Beli</TableHeadCell>
+            <TableHeadCell>Harga Jual</TableHeadCell>
+            <TableHeadCell>Tanggal Expired</TableHeadCell>
+            <TableHeadCell>Jumlah Stok</TableHeadCell>
+            <TableHeadCell>
+              <span class="sr-only">Aksi</span>
+            </TableHeadCell>
+          </TableHead>
+          <TableBody tableBodyClass="divide-y">
+            {#each items_stok.filter((item) => item.nama_barang
+                .toLowerCase()
+                .includes(searchTermBarang.toLowerCase())) as item, index}
+              <TableBodyRow>
+                <TableBodyCell>{index + 1}</TableBodyCell>
+                <TableBodyCell>{item.tanggal}</TableBodyCell>
+                <TableBodyCell>{item.nama_barang}</TableBodyCell>
+                <TableBodyCell>{item.nama_pbf}</TableBodyCell>
+                <TableBodyCell>{item.no_batch}</TableBodyCell>
+                <TableBodyCell
+                  >Rp. {item.harga_beli_per_satuan.toLocaleString(
+                    "id-ID"
+                  )}</TableBodyCell
+                >
+                <TableBodyCell
+                  >Rp. {item.harga_jual_per_satuan.toLocaleString(
+                    "id-ID"
+                  )}</TableBodyCell
+                >
+                <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
+                <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
+                <TableBodyCell>
+                  <div class="flex space-x-4">
+                    <Button
+                      color="yellow"
+                      pill={true}
+                      class="!p-2"
+                      onclick={() => {
+                        selectedStokId = item.id_stok;
+                        selectedBarangId = item.id_barang;
+                        nama_barang = item.nama_barang;
+                        selectedPBFId = item.id_pbf;
+                        nama_pbf = item.nama_pbf;
+                        nomor_batch = item.no_batch;
+                        harga_beli = item.harga_beli_per_satuan;
+                        harga_jual = item.harga_jual_per_satuan;
+                        jumlah_stok = item.jumlah_stok;
+                        clickEditStokModal = true;
+                      }}
+                    >
+                      <PenSolid class="w-6 h-6" />
+                    </Button>
+                    <Button
+                      color="red"
+                      pill={true}
+                      class="!p-2"
+                      onclick={() => {
+                        selectedStokId = item.id_stok;
+                        selectedBarang = item.nama_barang;
+                        deleteConfirmation = true;
+                        deleteStokAlert = true;
+                      }}><TrashBinSolid class="w-6 h-6" /></Button
+                    >
+                  </div>
+                </TableBodyCell>
+              </TableBodyRow>
+            {/each}
+          </TableBody>
+        </Table>
+      {/if}
     </TabItem>
     <TabItem
       open={isTglExp}
@@ -1349,51 +1372,60 @@
         isStockAlert = false;
       }}
     >
-      <input
-        type="text"
-        class="mb-4 border border-gray-400 p-2 rounded w-full flex-1"
-        placeholder="Cari data stok..."
-        bind:value={searchStockAlert}
-      />
+      {#if expw_items_stok.length <= 0}
+        <div class="flex flex-col items-center space-y-4">
+          <InfoCircleSolid class="w-12 h-12 text-gray-500" />
+          <p class="text-md text-gray-500">
+            Tidak ada data stok yang memiliki tanggal expired &lt; 1 bulan.
+          </p>
+        </div>
+      {:else}
+        <input
+          type="text"
+          class="mb-4 border border-gray-400 p-2 rounded w-full flex-1"
+          placeholder="Cari data stok..."
+          bind:value={searchStockAlert}
+        />
 
-      <Table innerDivClass="left-0 my-2" hoverable={true}>
-        <TableHead>
-          <TableHeadCell>No</TableHeadCell>
-          <TableHeadCell>Nama Obat</TableHeadCell>
-          <TableHeadCell>PBF</TableHeadCell>
-          <TableHeadCell>No Batch</TableHeadCell>
-          <TableHeadCell>Harga Beli</TableHeadCell>
-          <TableHeadCell>Harga Jual</TableHeadCell>
-          <TableHeadCell>Tanggal Expired</TableHeadCell>
-          <TableHeadCell>Jumlah Stok</TableHeadCell>
-        </TableHead>
-        <TableBody tableBodyClass="divide-y">
-          {#each expw_items_stok.filter((item) => item.nama_barang
-              .toLowerCase()
-              .includes(searchTermBarang.toLowerCase())) as item, index}
-            <TableBodyRow>
-              <TableBodyCell>{index + 1}</TableBodyCell>
-              <TableBodyCell>{item.nama_barang}</TableBodyCell>
-              <TableBodyCell>{item.nama_pbf}</TableBodyCell>
-              <TableBodyCell>{item.no_batch}</TableBodyCell>
-              <TableBodyCell
-                >Rp. {item.harga_beli_per_satuan.toLocaleString(
-                  "id-ID"
-                )}</TableBodyCell
-              >
-              <TableBodyCell
-                >Rp. {item.harga_jual_per_satuan.toLocaleString(
-                  "id-ID"
-                )}</TableBodyCell
-              >
-              <TableBodyCell
-                >{formatTanggal(item.tanggal_expired)}</TableBodyCell
-              >
-              <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
-            </TableBodyRow>
-          {/each}
-        </TableBody>
-      </Table>
+        <Table innerDivClass="left-0 my-2" hoverable={true}>
+          <TableHead>
+            <TableHeadCell>No</TableHeadCell>
+            <TableHeadCell>Nama Obat</TableHeadCell>
+            <TableHeadCell>PBF</TableHeadCell>
+            <TableHeadCell>No Batch</TableHeadCell>
+            <TableHeadCell>Harga Beli</TableHeadCell>
+            <TableHeadCell>Harga Jual</TableHeadCell>
+            <TableHeadCell>Tanggal Expired</TableHeadCell>
+            <TableHeadCell>Jumlah Stok</TableHeadCell>
+          </TableHead>
+          <TableBody tableBodyClass="divide-y">
+            {#each expw_items_stok.filter((item) => item.nama_barang
+                .toLowerCase()
+                .includes(searchTermBarang.toLowerCase())) as item, index}
+              <TableBodyRow>
+                <TableBodyCell>{index + 1}</TableBodyCell>
+                <TableBodyCell>{item.nama_barang}</TableBodyCell>
+                <TableBodyCell>{item.nama_pbf}</TableBodyCell>
+                <TableBodyCell>{item.no_batch}</TableBodyCell>
+                <TableBodyCell
+                  >Rp. {item.harga_beli_per_satuan.toLocaleString(
+                    "id-ID"
+                  )}</TableBodyCell
+                >
+                <TableBodyCell
+                  >Rp. {item.harga_jual_per_satuan.toLocaleString(
+                    "id-ID"
+                  )}</TableBodyCell
+                >
+                <TableBodyCell
+                  >{formatTanggal(item.tanggal_expired)}</TableBodyCell
+                >
+                <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
+              </TableBodyRow>
+            {/each}
+          </TableBody>
+        </Table>
+      {/if}
     </TabItem>
   </Tabs>
 </main>
