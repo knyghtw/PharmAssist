@@ -1354,7 +1354,7 @@
           <TableBody tableBodyClass="divide-y">
             {#each items_stok.filter((item) => item.nama_barang
                 .toLowerCase()
-                .includes(searchTermBarang.toLowerCase())) as item, index}
+                .includes(searchTermStok.toLowerCase())) as item, index}
               <TableBodyRow>
                 <TableBodyCell>{index + 1}</TableBodyCell>
                 <TableBodyCell>{item.tanggal}</TableBodyCell>
@@ -1453,7 +1453,7 @@
           <TableBody tableBodyClass="divide-y">
             {#each expw_items_stok.filter((item) => item.nama_barang
                 .toLowerCase()
-                .includes(searchTermBarang.toLowerCase())) as item, index}
+                .includes(searchStockAlert.toLowerCase())) as item, index}
               <TableBodyRow>
                 <TableBodyCell>{index + 1}</TableBodyCell>
                 <TableBodyCell>{item.nama_barang}</TableBodyCell>
