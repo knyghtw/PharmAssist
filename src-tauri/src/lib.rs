@@ -22,16 +22,17 @@ pub fn run() {
                 );
                 CREATE TABLE IF NOT EXISTS stok_obat (
                     id_stok INTEGER PRIMARY KEY,
-                    id_barang INTEGER UNIQUE,
-                    id_pbf INTEGER UNIQUE,
-                    no_batch VARCHAR UNIQUE,
+                    id_barang INTEGER,
+                    id_pbf INTEGER,
+                    no_batch VARCHAR,
                     harga_beli_per_satuan DECIMAL,
                     harga_jual_per_satuan DECIMAL,
                     tanggal_expired DATE,
                     jumlah_stok INTEGER,
                     tanggal DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (id_barang) REFERENCES barang(id_barang),
-                    FOREIGN KEY (id_pbf) REFERENCES pbf(id_pbf)
+                    FOREIGN KEY (id_pbf) REFERENCES pbf(id_pbf),
+                    CONSTRAINT unique_stok UNIQUE (id_barang, id_pbf, no_batch)
                 );",
         kind: MigrationKind::Up,
     }];

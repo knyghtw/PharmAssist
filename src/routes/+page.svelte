@@ -191,17 +191,19 @@
       const permission = await requestPermission();
       notificationGranted = permission === "granted";
     } else {
-      sendNotification({
-        title: "Peringatan Barang Expired",
-        body:
-          "Terdapat " +
-          expw_items_stok.length +
-          " barang yang akan mendekati tanggal kedaluwarsa",
-      });
+      await getItems();
+      if (expw_items_stok.length > 0) {
+        sendNotification({
+          title: "Peringatan Barang Expired",
+          body:
+            "Terdapat " +
+            expw_items_stok.length +
+            " barang yang akan mendekati tanggal kedaluwarsa",
+        });
+      }
     }
   }
 
-  getItems();
   setupNotification();
 
   async function getBarangItem(id_barang) {
@@ -1174,6 +1176,12 @@
         <div class="flex flex-col items-center space-y-4">
           <InfoCircleSolid class="w-12 h-12 text-gray-500" />
           <p class="text-md text-gray-500">Data kosong.</p>
+          <Button
+            onclick={() => (clickCreatePBFModal = true)}
+            class="font-medium"
+          >
+            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
+          </Button>
         </div>
       {:else}
         <div class="flex space-x-4 mb-4 justify-between">
@@ -1249,6 +1257,12 @@
         <div class="flex flex-col items-center space-y-4">
           <InfoCircleSolid class="w-12 h-12 text-gray-500" />
           <p class="text-md text-gray-500">Data kosong.</p>
+          <Button
+            onclick={() => (clickCreateDataModal = true)}
+            class="font-medium"
+          >
+            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
+          </Button>
         </div>
       {:else}
         <div class="flex space-x-4 mb-4 justify-between">
@@ -1332,6 +1346,12 @@
         <div class="flex flex-col items-center space-y-4">
           <InfoCircleSolid class="w-12 h-12 text-gray-500" />
           <p class="text-md text-gray-500">Data kosong.</p>
+          <Button
+            onclick={() => (clickCreateStokModal = true)}
+            class="font-medium"
+          >
+            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
+          </Button>
         </div>
       {:else}
         <div class="flex space-x-4 mb-4 justify-between">
