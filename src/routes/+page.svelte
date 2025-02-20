@@ -107,8 +107,8 @@
       id_barang: null,
       nama_barang: "",
       no_batch: "",
-      harga_beli: null,
-      harga_jual: null,
+      harga_beli_per_satuan: null,
+      harga_jual_per_satuan: null,
       tanggal_expired: "",
       jumlah: null,
     },
@@ -120,8 +120,8 @@
       id_barang: null,
       nama_barang: "",
       no_batch: "",
-      harga_beli: null,
-      harga_jual: null,
+      harga_beli_per_satuan: null,
+      harga_jual_per_satuan: null,
       tanggal_expired: "",
       jumlah: null,
     },
@@ -142,8 +142,8 @@
   let satuan = $state("");
 
   let nomor_batch = $state("");
-  let harga_beli = $state(0);
-  let harga_jual = $state(0);
+  let harga_beli_per_satuan = $state(0);
+  let harga_jual_per_satuan = $state(0);
   let tanggal_expired = $state(null);
   let jumlah_stok = $state(0);
 
@@ -183,6 +183,8 @@
       alert("Gagal mengambil data");
     }
   }
+
+  getItems();
 
   async function setupNotification() {
     notificationGranted = await isPermissionGranted();
@@ -249,8 +251,8 @@
         selectedBarangId,
         selectedPBFId,
         nomor_batch,
-        harga_beli,
-        harga_jual,
+        harga_beli_per_satuan,
+        harga_jual_per_satuan,
         tanggal_expired.toISOString().slice(0, 10),
         jumlah_stok
       );
@@ -261,8 +263,8 @@
       selectedBarangId = 0;
       selectedPBFId = 0;
       nomor_batch = "";
-      harga_beli = 0;
-      harga_jual = 0;
+      harga_beli_per_satuan = 0;
+      harga_jual_per_satuan = 0;
       tanggal_expired = null;
       jumlah_stok = 0;
       await getItems();
@@ -695,8 +697,8 @@
           selectedBarangId,
           selectedPBFId,
           nomor_batch,
-          harga_beli,
-          harga_jual,
+          harga_beli_per_satuan,
+          harga_jual_per_satuan,
           tanggal_expired,
           jumlah_stok
         );
@@ -787,9 +789,9 @@
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Beli</span>
         <Input
-          bind:value={harga_beli}
+          bind:value={harga_beli_per_satuan}
           type="number"
-          name="harga_beli"
+          name="harga_beli_per_satuan"
           placeholder="10000"
           class="font-normal"
           required
@@ -798,9 +800,9 @@
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Jual</span>
         <Input
-          bind:value={harga_jual}
+          bind:value={harga_jual_per_satuan}
           type="number"
-          name="harga_jual"
+          name="harga_jual_per_satuan"
           placeholder="11000"
           class="font-normal"
           required
@@ -828,8 +830,8 @@
           disabled={!selectedBarangId ||
             !selectedPBFId ||
             !nomor_batch ||
-            !harga_beli ||
-            !harga_jual ||
+            !harga_beli_per_satuan ||
+            !harga_jual_per_satuan ||
             !tanggal_expired ||
             !jumlah_stok}>Ubah</Button
         >
@@ -994,9 +996,9 @@
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Beli</span>
         <Input
-          bind:value={harga_beli}
+          bind:value={harga_beli_per_satuan}
           type="number"
-          name="harga_beli"
+          name="harga_beli_per_satuan"
           placeholder="10000"
           class="font-normal"
           required
@@ -1005,9 +1007,9 @@
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Jual</span>
         <Input
-          bind:value={harga_jual}
+          bind:value={harga_jual_per_satuan}
           type="number"
-          name="harga_jual"
+          name="harga_jual_per_satuan"
           placeholder="11000"
           class="font-normal"
           required
@@ -1036,8 +1038,8 @@
           disabled={!selectedBarangId ||
             !selectedPBFId ||
             !nomor_batch ||
-            !harga_beli ||
-            !harga_jual ||
+            !harga_beli_per_satuan ||
+            !harga_jual_per_satuan ||
             !tanggal_expired ||
             !jumlah_stok}>Simpan</Button
         >
@@ -1339,7 +1341,7 @@
         isStokObat = true;
         isTglExp = false;
         isStockAlert = false;
-        searchTermStok = "";
+        searchTermStok = "";        
       }}
     >
       {#if items_stok.length <= 0}
@@ -1392,14 +1394,10 @@
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
                 <TableBodyCell>{item.no_batch}</TableBodyCell>
                 <TableBodyCell
-                  >Rp. {item.harga_beli_per_satuan.toLocaleString(
-                    "id-ID"
-                  )}</TableBodyCell
+                  >Rp. {item.harga_beli_per_satuan.toLocaleString("id-ID")}</TableBodyCell
                 >
                 <TableBodyCell
-                  >Rp. {item.harga_jual_per_satuan.toLocaleString(
-                    "id-ID"
-                  )}</TableBodyCell
+                  >Rp. {item.harga_jual_per_satuan.toLocaleString("id-ID")}</TableBodyCell
                 >
                 <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
                 <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
@@ -1416,8 +1414,8 @@
                         selectedPBFId = item.id_pbf;
                         nama_pbf = item.nama_pbf;
                         nomor_batch = item.no_batch;
-                        harga_beli = item.harga_beli_per_satuan;
-                        harga_jual = item.harga_jual_per_satuan;
+                        harga_beli_per_satuan = item.harga_beli_per_satuan;
+                        harga_jual_per_satuan = item.harga_jual_per_satuan;
                         jumlah_stok = item.jumlah_stok;
                         clickEditStokModal = true;
                       }}
@@ -1490,14 +1488,10 @@
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
                 <TableBodyCell>{item.no_batch}</TableBodyCell>
                 <TableBodyCell
-                  >Rp. {item.harga_beli_per_satuan.toLocaleString(
-                    "id-ID"
-                  )}</TableBodyCell
+                  >Rp. {item.harga_beli_per_satuan.toLocaleString("id-ID")}</TableBodyCell
                 >
                 <TableBodyCell
-                  >Rp. {item.harga_jual_per_satuan.toLocaleString(
-                    "id-ID"
-                  )}</TableBodyCell
+                  >Rp. {item.harga_jual_per_satuan.toLocaleString("id-ID")}</TableBodyCell
                 >
                 <TableBodyCell
                   >{formatTanggal(item.tanggal_expired)}</TableBodyCell
