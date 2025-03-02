@@ -24,7 +24,7 @@ export default class stokService {
     try {
       const db = await this.getDB();
       const result = await db.select(
-        "SELECT s.*, b.nama_barang, p.nama_pbf FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf WHERE s.tanggal_expired BETWEEN date('now') AND date('now', '+1 month')"
+        "SELECT s.*, b.nama_barang, p.nama_pbf FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf WHERE s.tanggal_expired <= date('now', '+1 month')"
       );
       return result;
     } catch (error) {
