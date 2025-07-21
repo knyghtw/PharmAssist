@@ -4,6 +4,10 @@ PharmAssist merupakan aplikasi desktop yang dapat mencatat serta mengelola stok 
 
 ![halaman stok_obat](https://github.com/knyghtw/PharmAssist/blob/main/media/stokobat.png)
 
+![input stok obat](https://github.com/knyghtw/PharmAssist/blob/main/media/input_stokobat.png)
+
+![notifikasi](https://github.com/knyghtw/PharmAssist/blob/main/media/notifikasi.png)
+
 ## Fitur
 - Manajemen Data PBF
   - Tambah, edit, dan hapus data PBF (Pedagang Besar Farmasi)
