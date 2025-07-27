@@ -29,6 +29,9 @@ PharmAssist merupakan aplikasi desktop yang dapat mencatat serta mengelola stok 
 2. Tambahkan data PBF dan barang sebelum mencatat stok.
 3. Klik pada *tab* stok obat untuk memasukkan stok obat baru.
 
+## Demo Video
+![demo video](https://github.com/knyghtw/PharmAssist/blob/main/media/demo.mp4)
+
 ## Informasi untuk Pengembang
 ### Rekomendasi Setup IDE
 [VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
