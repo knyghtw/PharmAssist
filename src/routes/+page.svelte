@@ -58,9 +58,9 @@
   let clickEditPBFModal = $state(false);
   let clickEditBarangModal = $state(false);
   let clickEditStokModal = $state(false);
-  let isPBF = $state(true);
+  let isPBF = $state(false);
   let isDataObat = $state(false);
-  let isStokObat = $state(false);
+  let isStokObat = $state(true);
   let isTglExp = $state(false);
   let isStockAlert = $state(false);
   let deleteConfirmation = $state(false);
@@ -1163,7 +1163,7 @@
     </div>
   </div>
   <Tabs tabStyle="underline">
-    <TabItem
+    <!-- <TabItem
       open={isPBF}
       title="Data PBF"
       on:click={() => {
@@ -1243,8 +1243,8 @@
           </Table>
         </p>
       {/if}
-    </TabItem>
-    <TabItem
+    </TabItem> -->
+    <!-- <TabItem
       open={isDataObat}
       title="Data Obat"
       on:click={() => {
@@ -1331,7 +1331,7 @@
           </Table>
         </p>
       {/if}
-    </TabItem>
+    </TabItem> -->
     <TabItem
       open={isStokObat}
       title="Stok Obat"
@@ -1344,7 +1344,7 @@
         searchTermStok = "";        
       }}
     >
-      {#if items_stok.length <= 0}
+      {#if items_stok.length <= 0 || items_stok == null}
         <div class="flex flex-col items-center space-y-4">
           <InfoCircleSolid class="w-12 h-12 text-gray-500" />
           <p class="text-md text-gray-500">Data kosong.</p>
@@ -1394,10 +1394,10 @@
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
                 <TableBodyCell>{item.no_batch}</TableBodyCell>
                 <TableBodyCell
-                  >Rp. {item.harga_beli_per_satuan.toLocaleString("id-ID")}</TableBodyCell
+                  >Rp. {item.harga_beli_per_satuan}</TableBodyCell
                 >
                 <TableBodyCell
-                  >Rp. {item.harga_jual_per_satuan.toLocaleString("id-ID")}</TableBodyCell
+                  >Rp. {item.harga_jual_per_satuan}</TableBodyCell
                 >
                 <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
                 <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
