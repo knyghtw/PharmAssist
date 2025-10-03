@@ -14,7 +14,6 @@ pub fn run() {
         sql: "CREATE TABLE IF NOT EXISTS barang (
                     id_barang INTEGER PRIMARY KEY,
                     nama_barang VARCHAR UNIQUE,
-                    satuan VARCHAR
                 );
                 CREATE TABLE IF NOT EXISTS pbf (
                     id_pbf INTEGER PRIMARY KEY,

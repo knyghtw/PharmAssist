@@ -250,6 +250,8 @@
       const result = await stokService.createItem(
         selectedBarangId,
         selectedPBFId,
+        nama_barang,
+        nama_pbf,
         nomor_batch,
         harga_beli_per_satuan,
         harga_jual_per_satuan,
@@ -1035,8 +1037,8 @@
         <Button
           class="flex flex-1"
           type="submit"
-          disabled={!selectedBarangId ||
-            !selectedPBFId ||
+          disabled={!nama_barang ||
+            !nama_pbf ||
             !nomor_batch ||
             !harga_beli_per_satuan ||
             !harga_jual_per_satuan ||

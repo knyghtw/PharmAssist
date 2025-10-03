@@ -1,4 +1,6 @@
 import Database from "@tauri-apps/plugin-sql";
+import barangService from "./barangService";
+import pbfService from "./pbfService";
 
 const DB_PATH = "sqlite:test.db";
 
@@ -32,10 +34,13 @@ export default class stokService {
       throw error;
     }
   }
-
+// TODO:
+// Fix createItem
   static async createItem(
     id_barang,
     id_pbf,
+    nama_barang,
+    nama_pbf,
     no_batch,
     harga_beli_per_satuan,
     harga_jual_per_satuan,
@@ -45,15 +50,25 @@ export default class stokService {
     try {
       const db = await this.getDB();
 
-      const existingData = await db.select(
-        "SELECT id_barang, no_batch FROM stok_obat WHERE id_barang = $1 AND no_batch = $2",
-        [id_barang, no_batch]
-      );
+      // const existingData = await db.select(
+      //   "SELECT id_barang, no_batch FROM stok_obat WHERE id_barang = $1 AND no_batch = $2",
+      //   [id_barang, no_batch]
+      // );
 
-      if (existingData.length > 0) {
-        throw new Error(
-          `Stok obat dengan id_barang "${id_barang}" dan no_batch "${no_batch}" sudah ada`
-        );
+      // if (existingData.length > 0) {
+      //   throw new Error(
+      //     `Stok obat dengan id_barang "${id_barang}" dan no_batch "${no_batch}" sudah ada`
+      //   );
+      // }
+
+      if (id_barang.length == 0 || id_barang == null) {
+        // TODO: Search keyword from nama_barang in barang, get the id
+        // If not found, create new and get the id
+      }
+
+      if (id_pbf.length == 0 || id_pbf == null) {
+        // TODO: Search keyword from nama_pbf in pbf, get the id
+        // If not found, create new and get the id
       }
 
       const result = await db.execute(
