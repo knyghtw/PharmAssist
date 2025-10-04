@@ -34,8 +34,8 @@ export default class stokService {
       throw error;
     }
   }
-// TODO:
-// Fix createItem
+  // TODO:
+  // Fix createItem
   static async createItem(
     id_barang,
     id_pbf,
@@ -61,14 +61,30 @@ export default class stokService {
       //   );
       // }
 
-      if (id_barang.length == 0 || id_barang == null) {
+      if (id_barang.length == 0 && nama_barang.length > 0) {
         // TODO: Search keyword from nama_barang in barang, get the id
         // If not found, create new and get the id
+        const existingData = await db.select(
+          "SELECT nama_barang FROM barang WHERE nama_barang LIKE ?",
+          [nama_barang + "%"]
+        );
+        if (existingData.length == 0) {
+          barangService.createItem(nama_barang);
+          id_barang = db.select("SELECT id_barang FROM barang WHERE nama_barang LIKE ?", [
+            nama_barang + "%",
+          ]);
+        } else if (existingData.length > 0) {
+          // TODO: Multiple existing data
+        }
       }
 
-      if (id_pbf.length == 0 || id_pbf == null) {
+      if (id_pbf.length == 0 && nama_pbf.length > 0) {
         // TODO: Search keyword from nama_pbf in pbf, get the id
         // If not found, create new and get the id
+        const existingData = await db.select(
+          "SELECT nama_pbf FROM pbf WHERE nama_pbf LIKE ?",
+          [nama_pbf + "%"]
+        );
       }
 
       const result = await db.execute(

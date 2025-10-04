@@ -35,7 +35,7 @@ export default class barangService {
     }
   }
 
-  static async createItem(nama_barang, satuan) {
+  static async createItem(nama_barang) {
     try {
       const db = await Database.load("sqlite:test.db");
       const existingData = await db.select(
@@ -48,8 +48,8 @@ export default class barangService {
       }
 
       const result = await db.execute(
-        "INSERT INTO barang (nama_barang, satuan) VALUES ($1, $2)",
-        [nama_barang, satuan]
+        "INSERT INTO barang (nama_barang) VALUES ($1)",
+        [nama_barang]
       );
       return {
         success: true,
@@ -62,7 +62,7 @@ export default class barangService {
     }
   }
 
-  static async updateItem(id_barang, nama_barang, satuan) {
+  static async updateItem(id_barang, nama_barang) {
     try {
       const db = await this.getDB();
       const dataCheck = await db.select(
@@ -73,8 +73,8 @@ export default class barangService {
         throw new Error(`Barang tidak ada dalam sistem`);
       }
       const result = await db.execute(
-        "UPDATE barang SET nama_barang = $1, satuan = $2 WHERE id_barang = $3",
-        [nama_barang, satuan, id_barang]
+        "UPDATE barang SET nama_barang = $1 WHERE id_barang = $2",
+        [nama_barang, id_barang]
       );
       return {
         success: true,
