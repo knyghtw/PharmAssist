@@ -1,6 +1,4 @@
 import Database from "@tauri-apps/plugin-sql";
-import barangService from "./barangService";
-import pbfService from "./pbfService";
 
 const DB_PATH = "sqlite:test.db";
 
@@ -50,64 +48,154 @@ export default class stokService {
     try {
       const db = await this.getDB();
 
-      // const existingData = await db.select(
-      //   "SELECT id_barang, no_batch FROM stok_obat WHERE id_barang = $1 AND no_batch = $2",
-      //   [id_barang, no_batch]
-      // );
+      const normNamaBarang = nama_barang.trim().toUpperCase();
+      const normNamaPBF = nama_pbf.trim().toUpperCase();
 
-      // if (existingData.length > 0) {
-      //   throw new Error(
-      //     `Stok obat dengan id_barang "${id_barang}" dan no_batch "${no_batch}" sudah ada`
-      //   );
-      // }
-
-      if (id_barang.length == 0 && nama_barang.length > 0) {
-        // TODO: Search keyword from nama_barang in barang, get the id
-        // If not found, create new and get the id
-        const existingData = await db.select(
-          "SELECT nama_barang FROM barang WHERE nama_barang LIKE ?",
-          [nama_barang + "%"]
+      if ((!id_barang || id_barang.length === 0) && normNamaBarang.length > 0) {
+        const exactBarang = await db.select(
+          "SELECT * FROM barang WHERE UPPER(nama_barang) = ? LIMIT 1",
+          [normNamaBarang]
         );
-        if (existingData.length == 0) {
-          barangService.createItem(nama_barang);
-          id_barang = db.select("SELECT id_barang FROM barang WHERE nama_barang LIKE ?", [
-            nama_barang + "%",
-          ]);
-        } else if (existingData.length > 0) {
-          // TODO: Multiple existing data
+        if (exactBarang) {
+          id_barang = exactBarang.id_barang;
+        } else {
+          const candidatesBarang = await db.all(
+            "SELECT id_barang, nama_barang FROM barang WHERE UPPER(nama_barang) LIKE ? LIMIT 5",
+            [normNamaBarang + "%"]
+          );
+
+          if (candidatesBarang.length === 0) {
+            try {
+              await db.run("BEGIN");
+              const insertRes = await db.run(
+                "INSERT INTO barang (nama_barang) VALUES (?)",
+                [normNamaBarang]
+              );
+              const newId =
+                insertRes && insertRes.lastInsertId
+                  ? insertRes.lastInsertId
+                  : (
+                      await db.get(
+                        "SELECT id_barang FROM barang WHERE nama_barang = ?",
+                        [normNamaBarang]
+                      )
+                    ).id_barang;
+              await db.run("COMMIT");
+              id_barang = newId;
+            } catch (error) {
+              try {
+                await db.run("ROLLBACK");
+              } catch (e) {
+                //ignore
+              }
+              const row = await db.get(
+                "SELECT id_barang FROM barang WHERE nama_barang = ?",
+                [normNamaBarang]
+              );
+              if (row) {
+                id_barang = row.id_barang;
+              } else {
+                throw error;
+              }
+            }
+          } else {
+            return {
+              success: false,
+              message: "confirm_barang",
+              data: candidatesBarang,
+            };
+          }
         }
       }
 
-      if (id_pbf.length == 0 && nama_pbf.length > 0) {
-        // TODO: Search keyword from nama_pbf in pbf, get the id
-        // If not found, create new and get the id
-        const existingData = await db.select(
-          "SELECT nama_pbf FROM pbf WHERE nama_pbf LIKE ?",
-          [nama_pbf + "%"]
+      if (
+        (!id_pbf || id_pbf.toString().length === 0) &&
+        normNamaPBF.length > 0
+      ) {
+        const exactPBF = await db.select(
+          "SELECT id_pbf, nama_pbf FROM pbf WHERE UPPER(nama_pbf) = ? LIMIT 1",
+          [normNamaPBF]
         );
+        if (exactPBF) {
+          id_pbf = exactPBF.id_pbf;
+        } else {
+          const candidatesPBF = await db.all(
+            "SELECT id_pbf, nama_pbf FROM pbf WHERE UPPER(nama_pbf) LIKE ? LIMIT 5",
+            [normNamaPBF + "%"]
+          );
+
+          if (candidatesPBF.length === 0) {
+            try {
+              await db.run("BEGIN");
+              const insertRes = await db.run(
+                "INSERT INTO pbf (nama_pbf) VALUES (?)",
+                [normNamaPBF]
+              );
+              const newPbfId =
+                insertRes && insertRes.lastInsertId
+                  ? insertRes.lastInsertId
+                  : (
+                      await db.get(
+                        "SELECT id_pbf FROM pbf WHERE nama_pbf = ?",
+                        [normNamaPBF]
+                      )
+                    ).id_pbf;
+              await db.run("COMMIT");
+              id_pbf = newPbfId;
+            } catch (error) {
+              try {
+                await db.run("ROLLBACK");
+              } catch (e) {
+                //ignore
+              }
+              const row = await db.get(
+                "SELECT id_pbf FROM pbf WHERE nama_pbf = ?",
+                [normNamaPBF]
+              );
+              if (row) {
+                id_pbf = row.id_pbf;
+              } else {
+                throw error;
+              }
+            }
+          } else {
+            return {
+              success: false,
+              message: "confirm_pbf",
+              data: candidatesPBF,
+            };
+          }
+        }
       }
 
-      const result = await db.execute(
-        "INSERT INTO stok_obat (id_barang, id_pbf, no_batch, harga_beli_per_satuan, harga_jual_per_satuan, tanggal_expired, jumlah_stok) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        [
-          id_barang,
-          id_pbf,
-          no_batch,
-          harga_beli_per_satuan,
-          harga_jual_per_satuan,
-          tanggal_expired,
-          jumlah_stok,
-        ]
-      );
+      await db.run("BEGIN");
+      try {
+        const result = await db.run(
+          "INSERT INTO stok_obat (id_barang, id_pbf, no_batch, harga_beli_per_satuan, harga_jual_per_satuan, tanggal_expired, jumlah_stok) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [
+            id_barang,
+            id_pbf,
+            no_batch,
+            harga_beli_per_satuan,
+            harga_jual_per_satuan,
+            tanggal_expired,
+            jumlah_stok,
+          ]
+        );
+        await db.run("COMMIT");
 
-      return {
-        success: true,
-        message: "Data stok obat berhasil ditambahkan",
-        data: result,
-      };
+        return {
+          success: true,
+          message: "Data stok obat berhasil ditambahkan",
+          data: result,
+        };
+      } catch (err) {
+        await db.run("ROLLBACK");
+        throw err;
+      }
     } catch (error) {
       console.error("Error adding item:", error);
-      throw error;
+      return { success: false, message: error.message || "Terjadi kesalahan" };
     }
   }
 

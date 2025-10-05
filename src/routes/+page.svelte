@@ -76,6 +76,8 @@
   let deleteDataAction = $state(false);
   let resetDataAction = $state(false);
   let actionSuccess = $state(false);
+  let requireBarangConfirmation = $state(false);
+  let requirePBFConfirmation = $state(false);
   let showSuggestionsBarang = $state(false);
   let showSuggestionsPBF = $state(false);
   let newNotification = $state(false);
@@ -258,18 +260,24 @@
         tanggal_expired.toISOString().slice(0, 10),
         jumlah_stok
       );
-      actionSuccess = true;
-      addDataAction = true;
-      nama_barang = "";
-      nama_pbf = "";
-      selectedBarangId = 0;
-      selectedPBFId = 0;
-      nomor_batch = "";
-      harga_beli_per_satuan = 0;
-      harga_jual_per_satuan = 0;
-      tanggal_expired = null;
-      jumlah_stok = 0;
-      await getItems();
+      if (result.message == "confirm_barang") {
+        requireBarangConfirmation = true;
+      } else if (result.message == "confirm_pbf") {
+        requirePBFConfirmation = true;
+      } else {
+        actionSuccess = true;
+        addDataAction = true;
+        nama_barang = "";
+        nama_pbf = "";
+        selectedBarangId = 0;
+        selectedPBFId = 0;
+        nomor_batch = "";
+        harga_beli_per_satuan = 0;
+        harga_jual_per_satuan = 0;
+        tanggal_expired = null;
+        jumlah_stok = 0;
+        await getItems();
+      }
     } catch (error) {
       alert(error.message);
     }
@@ -1343,7 +1351,7 @@
         isStokObat = true;
         isTglExp = false;
         isStockAlert = false;
-        searchTermStok = "";        
+        searchTermStok = "";
       }}
     >
       {#if items_stok.length <= 0 || items_stok == null}
@@ -1395,12 +1403,8 @@
                 <TableBodyCell>{item.nama_barang}</TableBodyCell>
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
                 <TableBodyCell>{item.no_batch}</TableBodyCell>
-                <TableBodyCell
-                  >Rp. {item.harga_beli_per_satuan}</TableBodyCell
-                >
-                <TableBodyCell
-                  >Rp. {item.harga_jual_per_satuan}</TableBodyCell
-                >
+                <TableBodyCell>Rp. {item.harga_beli_per_satuan}</TableBodyCell>
+                <TableBodyCell>Rp. {item.harga_jual_per_satuan}</TableBodyCell>
                 <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
                 <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
                 <TableBodyCell>
@@ -1490,10 +1494,14 @@
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
                 <TableBodyCell>{item.no_batch}</TableBodyCell>
                 <TableBodyCell
-                  >Rp. {item.harga_beli_per_satuan.toLocaleString("id-ID")}</TableBodyCell
+                  >Rp. {item.harga_beli_per_satuan.toLocaleString(
+                    "id-ID"
+                  )}</TableBodyCell
                 >
                 <TableBodyCell
-                  >Rp. {item.harga_jual_per_satuan.toLocaleString("id-ID")}</TableBodyCell
+                  >Rp. {item.harga_jual_per_satuan.toLocaleString(
+                    "id-ID"
+                  )}</TableBodyCell
                 >
                 <TableBodyCell
                   >{formatTanggal(item.tanggal_expired)}</TableBodyCell
