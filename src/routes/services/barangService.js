@@ -40,11 +40,11 @@ export default class barangService {
       const db = await Database.load("sqlite:test.db");
       const existingData = await db.select(
         "SELECT nama_barang FROM barang WHERE UPPER(nama_barang) LIKE ? LIMIT 1",
-        [nama_barang.trim.toUpperCase()]
+        [nama_barang.trim().toUpperCase()]
       );
 
       if (existingData.length > 0) {
-        throw new Error(`PBF dengan nama "${nama_barang.trim.toUpperCase()}" sudah ada`);
+        throw new Error(`PBF dengan nama "${nama_barang.trim().toUpperCase()}" sudah ada`);
       }
 
       const result = await db.execute(
@@ -74,7 +74,7 @@ export default class barangService {
       }
       const result = await db.execute(
         "UPDATE barang SET nama_barang = $1 WHERE id_barang = $2",
-        [nama_barang.trim.toUpperCase(), id_barang]
+        [nama_barang.trim().toUpperCase(), id_barang]
       );
       return {
         success: true,

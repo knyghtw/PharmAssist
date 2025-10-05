@@ -24,7 +24,7 @@ export default class pbfService {
 
       const existingPBF = await db.select(
         "SELECT * FROM pbf WHERE UPPER(nama_pbf) = $1",
-        [nama_pbf.trim.toUpperCase()]
+        [nama_pbf.trim().toUpperCase()]
       );
 
       if (existingPBF.length > 0) {
@@ -33,7 +33,7 @@ export default class pbfService {
 
       const result = await db.execute(
         "INSERT INTO pbf (nama_pbf) VALUES ($1)",
-        [nama_pbf.trim.toUpperCase()]
+        [nama_pbf.trim().toUpperCase()]
       );
 
       return {
@@ -51,7 +51,7 @@ export default class pbfService {
     try {
       const db = await this.getDB();
       await db.execute("UPDATE pbf SET nama_pbf = $1 WHERE id_pbf = $2", [
-        nama_pbf.trim.toUpperCase(),
+        nama_pbf.trim().toUpperCase(),
         id_pbf,
       ]);
 
