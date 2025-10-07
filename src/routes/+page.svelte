@@ -249,6 +249,7 @@
 
   async function setStokObat() {
     try {
+      console.log("Current ID PBF: " + selectedPBFId);      
       const result = await stokService.createItem(
         selectedBarangId,
         selectedPBFId,
@@ -260,11 +261,8 @@
         tanggal_expired.toISOString().slice(0, 10),
         jumlah_stok
       );
-      if (result.message == "confirm_barang") {
-        requireBarangConfirmation = true;
-      } else if (result.message == "confirm_pbf") {
-        requirePBFConfirmation = true;
-      } else {
+
+      if (result.success == true) {
         actionSuccess = true;
         addDataAction = true;
         nama_barang = "";
@@ -277,6 +275,10 @@
         tanggal_expired = null;
         jumlah_stok = 0;
         await getItems();
+      } else if (result.message == "confirm_barang") {
+        requireBarangConfirmation = true;
+      } else if (result.message == "confirm_pbf") {
+        requirePBFConfirmation = true;
       }
     } catch (error) {
       alert(error.message);
