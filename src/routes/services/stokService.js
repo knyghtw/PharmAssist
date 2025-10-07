@@ -73,12 +73,29 @@ export default class stokService {
 
           if (candidatesBarang.length === 0) {
             const created = await barangService.createItem(normNamaBarang);
-            if (created && created.id) {
+            if (created && created.data.lastInsertId) {
               const row = await db.get(
-                "SELECT id_barang FROM barang WHERE nama_barang = ? LIMIT 1",
+                "SELECT id_barang FROM barang WHERE nama_barang = ?",
                 [normNamaBarang]
               );
-              id_barang = row ? row.id_barang : null;
+              if (row) {
+                id_barang = row.id_barang;
+              } else {
+                console.log("Error: row barang is null");
+                return {
+                  success: false,
+                  message: "Unexpected error row is null",
+                  data: candidatesBarang,
+                };
+              }
+              // id_barang = row ? row.id_barang : null;
+            } else {
+              console.log("Error adding new barang");
+              return {
+                success: false,
+                message: "Unexpected error adding new barang",
+                data: candidatesBarang,
+              };
             }
           } else {
             return {

@@ -39,7 +39,7 @@ export default class barangService {
     try {
       const db = await Database.load("sqlite:test.db");
       const existingData = await db.select(
-        "SELECT nama_barang FROM barang WHERE UPPER(nama_barang) LIKE ? LIMIT 1",
+        "SELECT nama_barang FROM barang WHERE nama_barang LIKE ? LIMIT 1",
         [nama_barang.trim().toUpperCase()]
       );
 

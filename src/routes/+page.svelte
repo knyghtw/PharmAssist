@@ -236,7 +236,7 @@
 
   async function setDataObat() {
     try {
-      const result = await barangService.createItem(nama_barang, satuan);
+      const result = await barangService.createItem(nama_barang);
       actionSuccess = true;
       addDataAction = true;
       await getItems();
