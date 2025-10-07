@@ -13,22 +13,22 @@ pub fn run() {
         description: "create_new_tables",
         sql: "CREATE TABLE IF NOT EXISTS barang (
                     id_barang INTEGER PRIMARY KEY,
-                    nama_barang VARCHAR UNIQUE                    
+                    nama_barang VARCHAR UNIQUE NOT NULL                    
                 );
                 CREATE TABLE IF NOT EXISTS pbf (
                     id_pbf INTEGER PRIMARY KEY,
-                    nama_pbf VARCHAR UNIQUE
+                    nama_pbf VARCHAR UNIQUE NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS stok_obat (
                     id_stok INTEGER PRIMARY KEY,
-                    id_barang INTEGER,
-                    id_pbf INTEGER,
-                    no_batch VARCHAR,
-                    harga_beli_per_satuan DECIMAL,
-                    harga_jual_per_satuan DECIMAL,
-                    tanggal_expired DATE,
-                    jumlah_stok INTEGER,
-                    tanggal DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    id_barang INTEGER NOT NULL,
+                    id_pbf INTEGER NOT NULL,
+                    no_batch VARCHAR NOT NULL,
+                    harga_beli_per_satuan DECIMAL NOT NULL,
+                    harga_jual_per_satuan DECIMAL NOT NULL,
+                    tanggal_expired DATE NOT NULL,
+                    jumlah_stok INTEGER NOT NULL,
+                    tanggal DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
                     FOREIGN KEY (id_barang) REFERENCES barang(id_barang),
                     FOREIGN KEY (id_pbf) REFERENCES pbf(id_pbf),
                     CONSTRAINT unique_stok UNIQUE (id_barang, id_pbf, no_batch)

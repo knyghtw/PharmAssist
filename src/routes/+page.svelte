@@ -40,6 +40,7 @@
     InfoCircleSolid,
     PenSolid,
     TrashBinSolid,
+    CloseCircleOutline,
   } from "flowbite-svelte-icons";
 
   import Database from "@tauri-apps/plugin-sql";
@@ -76,6 +77,7 @@
   let deleteDataAction = $state(false);
   let resetDataAction = $state(false);
   let actionSuccess = $state(false);
+  let actionFailed = $state(false);
   let requireBarangConfirmation = $state(false);
   let requirePBFConfirmation = $state(false);
   let showSuggestionsBarang = $state(false);
@@ -93,6 +95,7 @@
   let selectedPBFId = $state(0);
   let selectedBarangId = $state(0);
   let selectedStokId = $state(0);
+  let errorMessage = $state("");
 
   let items_barang = $state([
     {
@@ -249,7 +252,7 @@
 
   async function setStokObat() {
     try {
-      console.log("Current ID PBF: " + selectedPBFId);      
+      console.log("Current ID PBF: " + selectedPBFId);
       const result = await stokService.createItem(
         selectedBarangId,
         selectedPBFId,
@@ -279,9 +282,12 @@
         requireBarangConfirmation = true;
       } else if (result.message == "confirm_pbf") {
         requirePBFConfirmation = true;
+      } else if (result.success == false) {
+        actionFailed = true;
+        errorMessage = result.message;
       }
     } catch (error) {
-      alert(error.message);
+      console.log("Error adding stok obat: " + error);
     }
   }
 
@@ -520,6 +526,26 @@
           editDataAction = false;
           deleteDataAction = false;
           resetDataAction = false;
+        }}>Tutup</Button
+      >
+    </div>
+  </Modal>
+  <Modal bind:open={actionFailed} size="xs" autoclose outsideclose>
+    <div class="text-center">
+      <CloseCircleOutline
+        class="mx-auto mb-1 text-red-400 w-12 h-12 dark:text-red-200"
+      />
+      <h3 class="mb-1 text-lg font-semibold text-gray-500 dark:text-gray-400">
+        Error!
+      </h3>
+      <h4 class="mb-4 text-gray-500 dark:text-gray-400">
+        {errorMessage}
+      </h4>
+      <Button
+        color="red"
+        class="me-2"
+        onclick={() => {
+          actionFailed = false;
         }}>Tutup</Button
       >
     </div>

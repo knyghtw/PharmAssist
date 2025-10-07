@@ -1,6 +1,7 @@
 import Database from "@tauri-apps/plugin-sql";
 import barangService from "./barangService";
 import pbfService from "./pbfService";
+import { data } from "autoprefixer";
 
 const DB_PATH = "sqlite:test.db";
 
@@ -51,40 +52,48 @@ export default class stokService {
       const db = await this.getDB();
 
       const normNamaBarang = nama_barang
-        ? nama_barang.trim().toUpperCase()
+        ? nama_barang.toUpperCase()
         : "";
       console.log("normNamaBarang: " + normNamaBarang);
-      const normNamaPBF = nama_pbf ? nama_pbf.trim().toUpperCase() : "";
+      const normNamaPBF = nama_pbf ? nama_pbf.toUpperCase() : "";
       console.log("normNamaPBF: " + normNamaPBF);
 
+      // Barang candidate check
       if ((!id_barang || id_barang.length === 0) && normNamaBarang.length > 0) {
         console.log("id_barang is null");
         const exactBarang = await db.select(
-          "SELECT * FROM barang WHERE UPPER(nama_barang) = ? LIMIT 1",
+          "SELECT * FROM barang WHERE nama_barang = ? LIMIT 1",
           [normNamaBarang]
         );
-        if (exactBarang) {
+        if (exactBarang.id_barang) {
           id_barang = exactBarang.id_barang;
         } else {
           const candidatesBarang = await db.select(
-            "SELECT id_barang, nama_barang FROM barang WHERE UPPER(nama_barang) LIKE ? LIMIT 5",
+            "SELECT nama_barang FROM barang WHERE nama_barang LIKE ? LIMIT 5",
             [normNamaBarang + "%"]
           );
+          console.log("candidatesBarang: " + candidatesBarang);
 
-          if (candidatesBarang.length === 0) {
-            const created = await barangService.createItem(normNamaBarang);
-            if (created && created.data.lastInsertId) {
-              const row = await db.get(
-                "SELECT id_barang FROM barang WHERE nama_barang = ?",
+          if (candidatesBarang.length == 0) {
+            // const createdBarang = await barangService.createItem(normNamaBarang);
+            console.log("current id_barang has no candidates");
+            const createdBarang = await db.execute(
+              "INSERT INTO barang (nama_barang) VALUES ($1)",
+              [normNamaBarang]
+            );
+            // if (createdBarang && createdBarang.data.lastInsertId) {
+            if (createdBarang) {
+              const row = await db.select(
+                "SELECT id_barang FROM barang WHERE nama_barang LIKE '?' LIMIT 1",
                 [normNamaBarang]
               );
-              if (row) {
+              if (row.id_barang != null || row.id_barang != "") {
                 id_barang = row.id_barang;
               } else {
                 console.log("Error: row barang is null");
                 return {
                   success: false,
-                  message: "Unexpected error row is null",
+                  message: "Unexpected error row barang is null",
                   data: candidatesBarang,
                 };
               }
@@ -107,6 +116,7 @@ export default class stokService {
         }
       }
 
+      // PBF Candidate Check
       if (
         (!id_pbf || id_pbf.toString().length === 0) &&
         normNamaPBF.length > 0
@@ -116,24 +126,40 @@ export default class stokService {
           "SELECT id_pbf, nama_pbf FROM pbf WHERE UPPER(nama_pbf) = ? LIMIT 1",
           [normNamaPBF]
         );
-        if (exactPBF) {
+        if (exactPBF.id_pbf) {
           id_pbf = exactPBF.id_pbf;
         } else {
-          const candidatesPBF = await db.all(
+          const candidatesPBF = await db.select(
             "SELECT id_pbf, nama_pbf FROM pbf WHERE UPPER(nama_pbf) LIKE ? LIMIT 5",
             [normNamaPBF + "%"]
           );
 
           if (candidatesPBF.length === 0) {
-            const createdPBF = await pbfService.createItem(normNamaPBF);
-            if (createdPBF && createdPBF.id) {
+            console.log("current id_pbf has no candidates");
+            // const createdPBF = await pbfService.createItem(normNamaPBF);
+            const createdPBF = await db.execute(
+              "INSERT INTO pbf (nama_pbf) VALUES ($1)",
+              [normNamaPBF]
+            );
+            // if (createdPBF && createdPBF.id) {
+            if (createdPBF) {
               id_pbf = createdPBF.id;
             } else {
-              const row = await db.get(
-                "SELECT id_pbf FROM pbf WHERE UPPER(nama_pbf) = ? LIMIT 1",
+              const row = await db.select(
+                "SELECT id_pbf FROM pbf WHERE nama_pbf LIKE '?' LIMIT 1",
                 [normNamaPBF]
               );
-              id_pbf = row ? row.id_pbf : null;
+              if (row.id_pbf != null || row.id_pbf != "") {
+                id_pbf = row.id_pbf;
+              } else {
+                console.log("Error: row pbf is null");
+                return {
+                  success: false,
+                  message: "Unexpected error row pbf is null",
+                  data: candidatesPBF,
+                };
+              }
+              // id_pbf = row ? row.id_pbf : null;
             }
           } else {
             return {
@@ -165,7 +191,7 @@ export default class stokService {
       };
     } catch (error) {
       console.error("Error adding item:", error);
-      return { success: false, message: error.message || "Terjadi kesalahan" };
+      return { success: false, message: error };
     }
   }
 
