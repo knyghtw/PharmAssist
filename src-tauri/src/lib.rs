@@ -13,7 +13,7 @@ pub fn run() {
         description: "create_new_tables",
         sql: "CREATE TABLE IF NOT EXISTS barang (
                     id_barang INTEGER PRIMARY KEY,
-                    nama_barang VARCHAR UNIQUE,
+                    nama_barang VARCHAR UNIQUE                    
                 );
                 CREATE TABLE IF NOT EXISTS pbf (
                     id_pbf INTEGER PRIMARY KEY,
