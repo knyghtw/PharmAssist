@@ -1,4 +1,6 @@
 import Database from "@tauri-apps/plugin-sql";
+import barangService from "./barangService";
+import pbfService from "./pbfService";
 
 const DB_PATH = "sqlite:test.db";
 
@@ -48,10 +50,15 @@ export default class stokService {
     try {
       const db = await this.getDB();
 
-      const normNamaBarang = nama_barang.trim().toUpperCase();
-      const normNamaPBF = nama_pbf.trim().toUpperCase();
+      const normNamaBarang = nama_barang
+        ? nama_barang.trim().toUpperCase()
+        : "";
+      console.log("normNamaBarang: " + normNamaBarang);
+      const normNamaPBF = nama_pbf ? nama_pbf.trim().toUpperCase() : "";
+      console.log("normNamaPBF: " + normNamaPBF);
 
       if ((!id_barang || id_barang.length === 0) && normNamaBarang.length > 0) {
+        console.log("id_barang is null");
         const exactBarang = await db.select(
           "SELECT * FROM barang WHERE UPPER(nama_barang) = ? LIMIT 1",
           [normNamaBarang]
@@ -59,44 +66,19 @@ export default class stokService {
         if (exactBarang) {
           id_barang = exactBarang.id_barang;
         } else {
-          const candidatesBarang = await db.all(
+          const candidatesBarang = await db.select(
             "SELECT id_barang, nama_barang FROM barang WHERE UPPER(nama_barang) LIKE ? LIMIT 5",
             [normNamaBarang + "%"]
           );
 
           if (candidatesBarang.length === 0) {
-            try {
-              await db.run("BEGIN");
-              const insertRes = await db.run(
-                "INSERT INTO barang (nama_barang) VALUES (?)",
-                [normNamaBarang]
-              );
-              const newId =
-                insertRes && insertRes.lastInsertId
-                  ? insertRes.lastInsertId
-                  : (
-                      await db.get(
-                        "SELECT id_barang FROM barang WHERE nama_barang = ?",
-                        [normNamaBarang]
-                      )
-                    ).id_barang;
-              await db.run("COMMIT");
-              id_barang = newId;
-            } catch (error) {
-              try {
-                await db.run("ROLLBACK");
-              } catch (e) {
-                //ignore
-              }
+            const created = await barangService.createItem(normNamaBarang);
+            if (created && created.id) {
               const row = await db.get(
-                "SELECT id_barang FROM barang WHERE nama_barang = ?",
+                "SELECT id_barang FROM barang WHERE nama_barang = ? LIMIT 1",
                 [normNamaBarang]
               );
-              if (row) {
-                id_barang = row.id_barang;
-              } else {
-                throw error;
-              }
+              id_barang = row ? row.id_barang : null;
             }
           } else {
             return {
@@ -112,6 +94,7 @@ export default class stokService {
         (!id_pbf || id_pbf.toString().length === 0) &&
         normNamaPBF.length > 0
       ) {
+        console.log("id_pbf is null");
         const exactPBF = await db.select(
           "SELECT id_pbf, nama_pbf FROM pbf WHERE UPPER(nama_pbf) = ? LIMIT 1",
           [normNamaPBF]
@@ -125,38 +108,15 @@ export default class stokService {
           );
 
           if (candidatesPBF.length === 0) {
-            try {
-              await db.run("BEGIN");
-              const insertRes = await db.run(
-                "INSERT INTO pbf (nama_pbf) VALUES (?)",
-                [normNamaPBF]
-              );
-              const newPbfId =
-                insertRes && insertRes.lastInsertId
-                  ? insertRes.lastInsertId
-                  : (
-                      await db.get(
-                        "SELECT id_pbf FROM pbf WHERE nama_pbf = ?",
-                        [normNamaPBF]
-                      )
-                    ).id_pbf;
-              await db.run("COMMIT");
-              id_pbf = newPbfId;
-            } catch (error) {
-              try {
-                await db.run("ROLLBACK");
-              } catch (e) {
-                //ignore
-              }
+            const createdPBF = await pbfService.createItem(normNamaPBF);
+            if (createdPBF && createdPBF.id) {
+              id_pbf = createdPBF.id;
+            } else {
               const row = await db.get(
-                "SELECT id_pbf FROM pbf WHERE nama_pbf = ?",
+                "SELECT id_pbf FROM pbf WHERE UPPER(nama_pbf) = ? LIMIT 1",
                 [normNamaPBF]
               );
-              if (row) {
-                id_pbf = row.id_pbf;
-              } else {
-                throw error;
-              }
+              id_pbf = row ? row.id_pbf : null;
             }
           } else {
             return {
@@ -168,31 +128,24 @@ export default class stokService {
         }
       }
 
-      await db.run("BEGIN");
-      try {
-        const result = await db.run(
-          "INSERT INTO stok_obat (id_barang, id_pbf, no_batch, harga_beli_per_satuan, harga_jual_per_satuan, tanggal_expired, jumlah_stok) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          [
-            id_barang,
-            id_pbf,
-            no_batch,
-            harga_beli_per_satuan,
-            harga_jual_per_satuan,
-            tanggal_expired,
-            jumlah_stok,
-          ]
-        );
-        await db.run("COMMIT");
+      const result = await db.execute(
+        "INSERT INTO stok_obat (id_barang, id_pbf, no_batch, harga_beli_per_satuan, harga_jual_per_satuan, tanggal_expired, jumlah_stok) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [
+          id_barang,
+          id_pbf,
+          no_batch,
+          harga_beli_per_satuan,
+          harga_jual_per_satuan,
+          tanggal_expired,
+          jumlah_stok,
+        ]
+      );
 
-        return {
-          success: true,
-          message: "Data stok obat berhasil ditambahkan",
-          data: result,
-        };
-      } catch (err) {
-        await db.run("ROLLBACK");
-        throw err;
-      }
+      return {
+        success: true,
+        message: "Data stok obat berhasil ditambahkan",
+        data: result,
+      };
     } catch (error) {
       console.error("Error adding item:", error);
       return { success: false, message: error.message || "Terjadi kesalahan" };
