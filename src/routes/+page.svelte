@@ -53,20 +53,16 @@
 
   let notificationGranted = false;
   let dropdownPBFOpen = $state(false);
-  let clickCreateDataModal = $state(false);
-  let clickCreatePBFModal = $state(false);
   let clickCreateStokModal = $state(false);
-  let clickEditPBFModal = $state(false);
-  let clickEditBarangModal = $state(false);
   let clickEditStokModal = $state(false);
   let isPBF = $state(false);
   let isDataObat = $state(false);
   let isStokObat = $state(true);
   let isTglExp = $state(false);
   let isStockAlert = $state(false);
+  let isNewBarang = $state(false);
+  let isNewPBF = $state(false);
   let deleteConfirmation = $state(false);
-  let deletePBFAlert = $state(false);
-  let deleteBarangAlert = $state(false);
   let deleteStokAlert = $state(false);
   let resetConfirmation = $state(false);
   let resetPBFAlert = $state(false);
@@ -152,16 +148,6 @@
   let tanggal_expired = $state(null);
   let jumlah_stok = $state(0);
 
-  async function getPBF() {
-    const pbf = await pbfService.getItems();
-    items_pbf = pbf;
-  }
-
-  async function getBarang() {
-    const barang = await barangService.getItems();
-    items_barang = barang;
-  }
-
   async function getStok() {
     const stok = await stokService.getItems();
     items_stok = stok;
@@ -179,8 +165,6 @@
 
   async function getItems() {
     try {
-      await getPBF();
-      await getBarang();
       await getStok();
       await getExpiryWarnItems();
     } catch (error) {
@@ -213,45 +197,6 @@
 
   setupNotification();
 
-  async function getBarangItem(id_barang) {
-    try {
-      const barang = await barangService.getItem(id_barang);
-      selectedBarangId = barang.id_barang;
-      nama_barang = barang.nama_barang;
-      satuan = barang.satuan;
-    } catch (error) {
-      actionFailed = true;
-      errorMessage = error;
-    }
-  }
-
-  async function setPBF() {
-    try {
-      const result = await pbfService.createItem(nama_pbf);
-      actionSuccess = true;
-      addDataAction = true;
-      await getItems();
-      nama_pbf = "";
-    } catch (error) {
-      actionFailed = true;
-      errorMessage = error;
-    }
-  }
-
-  async function setDataObat() {
-    try {
-      const result = await barangService.createItem(nama_barang);
-      actionSuccess = true;
-      addDataAction = true;
-      await getItems();
-      nama_barang = "";
-      satuan = "";
-    } catch (error) {
-      actionFailed = true;
-      errorMessage = error;
-    }
-  }
-
   async function setStokObat() {
     try {
       const result = await stokService.createItem(
@@ -263,7 +208,9 @@
         harga_beli_per_satuan,
         harga_jual_per_satuan,
         tanggal_expired.toISOString().slice(0, 10),
-        jumlah_stok
+        jumlah_stok,
+        isNewBarang,
+        isNewPBF
       );
 
       if (result.success == true) {
@@ -293,34 +240,6 @@
     }
   }
 
-  async function updateBarang(selectedBarangId, nama_barang, satuan) {
-    try {
-      const result = await barangService.updateItem(
-        selectedBarangId,
-        nama_barang,
-        satuan
-      );
-      actionSuccess = true;
-      editDataAction = true;
-      await getItems();
-    } catch (error) {
-      actionFailed = true;
-      errorMessage = error;
-    }
-  }
-
-  async function updatePBF() {
-    try {
-      const result = await pbfService.updatePBF(nama_pbf, selectedPBFId);
-      actionSuccess = true;
-      editDataAction = true;
-      await getItems();
-    } catch (error) {
-      actionFailed = true;
-      errorMessage = error;
-    }
-  }
-
   async function updateStok(
     selectedStokId,
     selectedBarangId,
@@ -344,31 +263,6 @@
       );
       actionSuccess = true;
       editDataAction = true;
-      await getItems();
-    } catch (error) {
-      actionFailed = true;
-      errorMessage = error;
-    }
-  }
-
-  async function deletePBF() {
-    try {
-      const result = await pbfService.deleteItem(selectedPBF);
-      actionSuccess = true;
-      deleteDataAction = true;
-      selectedPBF = "Pilih PBF disini";
-      await getItems();
-    } catch (error) {
-      actionFailed = true;
-      errorMessage = error;
-    }
-  }
-
-  async function deleteBarang() {
-    try {
-      const result = await barangService.deleteItem(selectedBarangId);
-      actionSuccess = true;
-      deleteDataAction = true;
       await getItems();
     } catch (error) {
       actionFailed = true;
@@ -561,6 +455,37 @@
       >
     </div>
   </Modal>
+  <Modal bind:open={requireBarangConfirmation} size="xs" autoclose outsideclose>
+    <div class="text-center">
+      <ExclamationCircleOutline
+        class="mx-auto mb-4 text-yellow-400 w-12 h-12 dark:text-yellow-200"
+      />
+
+      <h3 class="mb-1 text-lg font-semibold text-gray-500 dark:text-gray-400">
+        Peringatan
+      </h3>
+      <h4 class="mb-2 text-gray-500 dark:text-gray-400">
+        Beberapa item mirip {nama_barang}. Silakan pilih item yang sesuai, atau
+        buat data baru.
+      </h4>
+
+      <Button
+        color="alternative"
+        class="me-2"
+        onclick={() => {
+          requireBarangConfirmation = false;
+          isNewBarang = true;
+          setStokObat();
+        }}>Buat Baru</Button
+      >
+      <Button
+        color="yellow"
+        onclick={() => {
+          requireBarangConfirmation = false;
+        }}>Batal</Button
+      >
+    </div>
+  </Modal>
   <Modal bind:open={deleteConfirmation} size="xs" autoclose outsideclose>
     <div class="text-center">
       <ExclamationCircleOutline
@@ -568,23 +493,14 @@
       />
 
       <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-        Apakah anda yakin ingin menghapus {#if deletePBFAlert}{selectedPBF}{:else if deleteBarangAlert}{selectedBarang}{:else if deleteStokAlert}Stok
-          {selectedBarang}{/if}?
+        Apakah anda yakin ingin menghapus Stok
+        {selectedBarang}?
       </h3>
       <Button
         color="red"
         class="me-2"
         onclick={() => {
-          if (deletePBFAlert) {
-            deletePBF();
-          } else if (deleteBarangAlert) {
-            deleteBarang();
-          } else if (deleteStokAlert) {
-            deleteStok();
-          }
-          selectedPBF = "Pilih PBF disini";
-          deletePBFAlert = false;
-          deleteBarangAlert = false;
+          deleteStok();
           deleteStokAlert = false;
           deleteConfirmation = false;
         }}>Ya</Button
@@ -592,150 +508,12 @@
       <Button
         color="alternative"
         onclick={() => {
-          selectedPBF = "Pilih PBF disini";
-          deletePBFAlert = false;
-          deleteBarangAlert = false;
           deleteStokAlert = false;
+          deleteConfirmation = false;
         }}>Tidak</Button
       >
     </div>
-  </Modal>
-  <Modal bind:open={clickCreatePBFModal} autoclose={false} outsideclose>
-    <form
-      class="flex flex-col space-y-4"
-      onsubmit={() => {
-        setPBF();
-        clickCreatePBFModal = false;
-        selectedPBF = "Pilih PBF disini";
-      }}
-    >
-      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
-        Tambah Data PBF
-      </h3>
-      <hr />
-      <Label class="space-y-2">
-        <span class="text-gray-900">Nama PBF</span>
-        <Input
-          bind:value={nama_pbf}
-          type="text"
-          name="pbf"
-          placeholder="PT ABC"
-          class="font-normal"
-          required
-        />
-      </Label>
-      <hr />
-      <div class="flex flex-row justify-between space-x-4">
-        <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
-          >Simpan</Button
-        >
-        <Button
-          class="flex flex-1"
-          type="button"
-          color="alternative"
-          onclick={() => {
-            clickCreatePBFModal = false;
-          }}
-        >
-          Batal
-        </Button>
-      </div>
-    </form>
-  </Modal>
-  <Modal bind:open={clickEditPBFModal} autoclose={false} outsideclose>
-    <form
-      class="flex flex-col space-y-4"
-      onsubmit={() => {
-        updatePBF();
-        clickEditPBFModal = false;
-        selectedPBF = "Pilih PBF disini";
-      }}
-    >
-      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
-        Edit Data PBF
-      </h3>
-      <hr />
-      <Label class="space-y-2">
-        <span class="text-gray-900">Nama PBF</span>
-        <Input
-          bind:value={nama_pbf}
-          type="text"
-          name="pbf"
-          placeholder="PT ABC"
-          class="font-normal"
-          required
-        />
-      </Label>
-      <div class="flex flex-row justify-between space-x-4">
-        <Button class="flex flex-1" type="submit" disabled={!nama_pbf}
-          >Ubah</Button
-        >
-        <Button
-          class="flex flex-1"
-          type="submit"
-          color="alternative"
-          onclick={() => {
-            clickEditPBFModal = false;
-          }}
-        >
-          Batal
-        </Button>
-      </div>
-    </form>
-  </Modal>
-  <Modal bind:open={clickEditBarangModal} autoclose={false} outsideclose>
-    <form
-      class="flex flex-col space-y-4"
-      onsubmit={() => {
-        updateBarang(selectedBarangId, nama_barang, satuan);
-        clickEditBarangModal = false;
-      }}
-    >
-      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
-        Edit Data Barang
-      </h3>
-      <hr />
-      <Label class="space-y-2">
-        <span class="text-gray-900">Nama PBF</span>
-        <Input
-          bind:value={nama_barang}
-          type="text"
-          name="nama_barang"
-          placeholder="Paracetamol"
-          class="font-normal"
-          required
-        />
-      </Label>
-      <Label class="space-y-2">
-        <span class="text-gray-900">Satuan</span>
-        <Input
-          bind:value={satuan}
-          type="text"
-          name="satuan"
-          placeholder="Tablet"
-          class="font-normal"
-          required
-        />
-      </Label>
-      <div class="flex flex-row justify-between space-x-4">
-        <Button
-          class="flex flex-1"
-          type="submit"
-          disabled={!nama_barang || !satuan}>Ubah</Button
-        >
-        <Button
-          class="flex flex-1"
-          type="submit"
-          color="alternative"
-          onclick={() => {
-            clickEditBarangModal = false;
-          }}
-        >
-          Batal
-        </Button>
-      </div>
-    </form>
-  </Modal>
+  </Modal>  
   <Modal bind:open={clickEditStokModal} autoclose={false} outsideclose>
     <form
       class="flex flex-col space-y-4"
@@ -896,62 +674,7 @@
         </Button>
       </div>
     </form>
-  </Modal>
-  <Modal bind:open={clickCreateDataModal} autoclose={false} outsideclose>
-    <form
-      class="flex flex-col space-y-4"
-      onsubmit={() => {
-        setDataObat();
-        clickCreateDataModal = false;
-        selectedPBF = "Pilih PBF disini";
-      }}
-    >
-      <h3 class="text-xl font-medium text-gray-900 dark:text-white">
-        Tambah Data
-      </h3>
-      <hr />
-      <Label class="space-y-2">
-        <span class="text-gray-900">Nama Obat</span>
-        <Input
-          bind:value={nama_barang}
-          type="text"
-          name="nama_barang"
-          placeholder="Paracetamol"
-          class="font-normal"
-          required
-        />
-      </Label>
-      <Label class="space-y-2">
-        <span class="text-gray-900">Satuan</span>
-        <Input
-          bind:value={satuan}
-          type="text"
-          name="satuan"
-          placeholder="Tablet"
-          class="font-normal"
-          required
-        />
-      </Label>
-      <hr />
-      <div class="flex flex-row justify-between space-x-4">
-        <Button
-          class="flex flex-1"
-          type="submit"
-          disabled={!nama_barang && !satuan}>Simpan</Button
-        >
-        <Button
-          class="flex flex-1"
-          type="button"
-          color="alternative"
-          onclick={() => {
-            clickCreateDataModal = false;
-          }}
-        >
-          Batal
-        </Button>
-      </div>
-    </form>
-  </Modal>
+  </Modal>  
   <Modal bind:open={clickCreateStokModal} autoclose={false} outsideclose>
     <form
       class="flex flex-col space-y-4"
@@ -1212,184 +935,12 @@
     </div>
   </div>
   <Tabs tabStyle="underline">
-    <!-- <TabItem
-      open={isPBF}
-      title="Data PBF"
-      on:click={() => {
-        isPBF = true;
-        isDataObat = false;
-        isStokObat = false;
-        isTglExp = false;
-        isStockAlert = false;
-      }}
-    >
-      {#if items_pbf.length <= 0}
-        <div class="flex flex-col items-center space-y-4">
-          <InfoCircleSolid class="w-12 h-12 text-gray-500" />
-          <p class="text-md text-gray-500">Data kosong.</p>
-          <Button
-            onclick={() => (clickCreatePBFModal = true)}
-            class="font-medium"
-          >
-            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
-          </Button>
-        </div>
-      {:else}
-        <div class="flex space-x-4 mb-4 justify-between">
-          <input
-            type="text"
-            class="border border-gray-400 p-2 rounded w-full flex-1"
-            placeholder="Cari data PBF..."
-            bind:value={searchPBF}
-          />
-          <Button onclick={() => (clickCreatePBFModal = true)}>
-            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
-          </Button>
-        </div>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          <Table innerDivClass="left-0 my-2" hoverable={true}>
-            <TableHead>
-              <TableHeadCell>No</TableHeadCell>
-              <TableHeadCell>Nama PBF</TableHeadCell>
-              <TableHeadCell>
-                <span class="sr-only">Aksi</span>
-              </TableHeadCell>
-            </TableHead>
-            <TableBody tableBodyClass="divide-y">
-              {#each items_pbf.filter((item) => item.nama_pbf
-                  .toLowerCase()
-                  .includes(searchPBF.toLowerCase())) as item, index}
-                <TableBodyRow>
-                  <TableBodyCell>{index + 1}</TableBodyCell>
-                  <TableBodyCell>{item.nama_pbf}</TableBodyCell>
-                  <TableBodyCell>
-                    <div class="flex space-x-4">
-                      <Button
-                        color="yellow"
-                        pill={true}
-                        class="!p-2"
-                        onclick={() => {
-                          selectedPBFId = item.id_pbf;
-                          selectedPBF = item.nama_pbf;
-                          nama_pbf = item.nama_pbf;
-                          clickEditPBFModal = true;
-                        }}><PenSolid class="w-6 h-6" /></Button
-                      ><Button
-                        color="red"
-                        pill={true}
-                        class="!p-2"
-                        onclick={() => {
-                          selectedPBF = item.nama_pbf;
-                          deleteConfirmation = true;
-                          deletePBFAlert = true;
-                        }}><TrashBinSolid class="w-6 h-6" /></Button
-                      >
-                    </div>
-                  </TableBodyCell>
-                </TableBodyRow>
-              {/each}
-            </TableBody>
-          </Table>
-        </p>
-      {/if}
-    </TabItem> -->
-    <!-- <TabItem
-      open={isDataObat}
-      title="Data Obat"
-      on:click={() => {
-        isPBF = false;
-        isDataObat = true;
-        isStokObat = false;
-        isTglExp = false;
-        isStockAlert = false;
-      }}
-    >
-      {#if items_barang.length <= 0}
-        <div class="flex flex-col items-center space-y-4">
-          <InfoCircleSolid class="w-12 h-12 text-gray-500" />
-          <p class="text-md text-gray-500">Data kosong.</p>
-          <Button
-            onclick={() => (clickCreateDataModal = true)}
-            class="font-medium"
-          >
-            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
-          </Button>
-        </div>
-      {:else}
-        <div class="flex space-x-4 mb-4 justify-between">
-          <input
-            type="text"
-            class="border border-gray-400 p-2 rounded w-full flex-1"
-            placeholder="Cari data obat..."
-            bind:value={searchTermBarang}
-          />
-          <Button
-            on:click={() => {
-              clickCreateDataModal = true;
-              selectedPBF = "Pilih PBF disini";
-            }}
-          >
-            <PlusOutline class="w-5 h-5 me-2" />Tambah Data
-          </Button>
-        </div>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          <Table innerDivClass="left-0 my-2" hoverable={true}>
-            <TableHead>
-              <TableHeadCell>NO</TableHeadCell>
-              <TableHeadCell>NAMA OBAT</TableHeadCell>
-              <TableHeadCell>Satuan</TableHeadCell>
-              <TableHeadCell>
-                <span class="sr-only">Aksi</span>
-              </TableHeadCell>
-            </TableHead>
-            <TableBody tableBodyClass="divide-y">
-              {#each items_barang.filter((item) => item.nama_barang
-                  .toLowerCase()
-                  .includes(searchTermBarang.toLowerCase())) as item, index}
-                <TableBodyRow>
-                  <TableBodyCell>{index + 1}</TableBodyCell>
-                  <TableBodyCell>{item.nama_barang}</TableBodyCell>
-                  <TableBodyCell>{item.satuan}</TableBodyCell>
-                  <TableBodyCell>{item.jml_stok}</TableBodyCell>
-                  <TableBodyCell>
-                    <div class="flex space-x-4">
-                      <Button
-                        color="yellow"
-                        pill={true}
-                        class="!p-2"
-                        onclick={() => {
-                          getBarangItem(item.id_barang);
-                          clickEditBarangModal = true;
-                        }}><PenSolid class="w-6 h-6" /></Button
-                      ><Button
-                        color="red"
-                        pill={true}
-                        class="!p-2"
-                        onclick={() => {
-                          selectedBarangId = item.id_barang;
-                          selectedBarang = item.nama_barang;
-                          deleteConfirmation = true;
-                          deleteBarangAlert = true;
-                        }}><TrashBinSolid class="w-6 h-6" /></Button
-                      >
-                    </div>
-                  </TableBodyCell>
-                </TableBodyRow>
-              {/each}
-            </TableBody>
-          </Table>
-        </p>
-      {/if}
-    </TabItem> -->
     <TabItem
       open={isStokObat}
       title="Stok Obat"
       on:click={() => {
-        isPBF = false;
-        isDataObat = false;
         isStokObat = true;
         isTglExp = false;
-        isStockAlert = false;
         searchTermStok = "";
       }}
     >
@@ -1490,11 +1041,8 @@
       open={isTglExp}
       title="Tanggal Expired"
       on:click={() => {
-        isPBF = false;
-        isDataObat = false;
         isStokObat = false;
         isTglExp = true;
-        isStockAlert = false;
       }}
     >
       {#if expw_items_stok.length <= 0}
