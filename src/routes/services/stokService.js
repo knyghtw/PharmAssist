@@ -77,36 +77,22 @@ export default class stokService {
           );
           console.log("candidatesBarang: " + candidatesBarang);
 
-          if (candidatesBarang.length == 0) {
-            // const createdBarang = await barangService.createItem(normNamaBarang);
-            console.log("current id_barang has no candidates");
+          if (candidatesBarang.length === 0) {
             const createdBarang = await db.execute(
               "INSERT INTO barang (nama_barang) VALUES ($1)",
               [normNamaBarang]
             );
-            // if (createdBarang && createdBarang.data.lastInsertId) {
-            if (createdBarang) {
-              const rowBarang = await db.select(
-                "SELECT id_barang FROM barang WHERE nama_barang LIKE '?' LIMIT 1",
-                [normNamaBarang]
-              );
-              console.log("id barang: " + rowBarang.id_barang);
-              if (rowBarang.id_barang != null || rowBarang.id_barang != "") {
-                currentIdBarang = rowBarang.id_barang;
-                console.log("current id_barang: " + currentIdBarang);
-              } else {
-                console.log("Error: rowBarang barang is null");
-                return {
-                  success: false,
-                  message: "Unexpected error rowBarang is null",
-                  data: candidatesBarang,
-                };
-              }              
+
+            const rowBarang = await db.select(
+              "SELECT id_barang FROM barang WHERE nama_barang = $1 LIMIT 1",
+              [normNamaBarang]
+            );
+            if (rowBarang && rowBarang[0].id_barang) {
+              currentIdBarang = rowBarang[0].id_barang;
             } else {
-              console.log("Error adding new barang");
               return {
                 success: false,
-                message: "Unexpected error adding new barang",
+                message: "Unexpected error rowBarang is null",
                 data: candidatesBarang,
               };
             }
@@ -143,26 +129,19 @@ export default class stokService {
             const createdPBF = await db.execute(
               "INSERT INTO pbf (nama_pbf) VALUES ($1)",
               [normNamaPBF]
-            );            
-            if (createdPBF) {
-              currentIdPBF = createdPBF.id;
+            );
+            const rowPBF = await db.select(
+              "SELECT id_pbf FROM pbf WHERE nama_pbf LIKE $1 LIMIT 1",
+              [normNamaPBF]
+            );
+            if (rowPBF && rowPBF[0].id_pbf) {
+              currentIdPBF = rowPBF[0].id_pbf;
             } else {
-              const rowPBF = await db.select(
-                "SELECT id_pbf FROM pbf WHERE nama_pbf LIKE '?' LIMIT 1",
-                [normNamaPBF]
-              );
-              console.log("id pbf: " + rowPBF.id_pbf);
-              if (rowPBF.id_pbf != null || rowPBF.id_pbf != "") {
-                currentIdPBF = rowPBF.id_pbf;
-                console.log("current id_pbf: " + currentIdPBF);
-              } else {
-                console.log("Error: rowPBF is null");
-                return {
-                  success: false,
-                  message: "Unexpected error rowPBF is null",
-                  data: candidatesPBF,
-                };
-              }
+              return {
+                success: false,
+                message: "Unexpected error rowPBF is null",
+                data: candidatesPBF,
+              };
             }
           } else {
             return {
