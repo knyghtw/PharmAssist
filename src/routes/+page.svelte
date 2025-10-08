@@ -184,8 +184,8 @@
       await getStok();
       await getExpiryWarnItems();
     } catch (error) {
-      console.error(error);
-      alert("Gagal mengambil data");
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -220,8 +220,8 @@
       nama_barang = barang.nama_barang;
       satuan = barang.satuan;
     } catch (error) {
-      console.error(error);
-      alert("Gagal mengambil data barang");
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -233,7 +233,8 @@
       await getItems();
       nama_pbf = "";
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -246,13 +247,13 @@
       nama_barang = "";
       satuan = "";
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
   async function setStokObat() {
     try {
-      console.log("Current ID PBF: " + selectedPBFId);
       const result = await stokService.createItem(
         selectedBarangId,
         selectedPBFId,
@@ -287,7 +288,8 @@
         errorMessage = result.message;
       }
     } catch (error) {
-      console.log("Error adding stok obat: " + error);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -302,7 +304,8 @@
       editDataAction = true;
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -313,7 +316,8 @@
       editDataAction = true;
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -342,7 +346,8 @@
       editDataAction = true;
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -354,7 +359,8 @@
       selectedPBF = "Pilih PBF disini";
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -365,7 +371,8 @@
       deleteDataAction = true;
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -376,7 +383,8 @@
       deleteDataAction = true;
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -387,7 +395,8 @@
       resetDataAction = true;
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -398,7 +407,8 @@
       resetDataAction = true;
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
@@ -409,7 +419,8 @@
       resetDataAction = true;
       await getItems();
     } catch (error) {
-      alert(error.message);
+      actionFailed = true;
+      errorMessage = error;
     }
   }
 
