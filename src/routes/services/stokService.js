@@ -35,8 +35,7 @@ export default class stokService {
       throw error;
     }
   }
-  // TODO:
-  // Fix createItem
+  
   static async createItem(
     id_barang,
     id_pbf,
