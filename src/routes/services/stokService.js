@@ -51,10 +51,8 @@ export default class stokService {
     try {
       const db = await this.getDB();
 
-      const normNamaBarang = nama_barang ? nama_barang.toUpperCase() : "";
-      console.log("normNamaBarang: " + normNamaBarang);
-      const normNamaPBF = nama_pbf ? nama_pbf.toUpperCase() : "";
-      console.log("normNamaPBF: " + normNamaPBF);
+      const normNamaBarang = nama_barang ? nama_barang.toUpperCase() : "";      
+      const normNamaPBF = nama_pbf ? nama_pbf.toUpperCase() : "";      
       let currentIdBarang = id_barang;
       let currentIdPBF = id_pbf;
 
@@ -62,8 +60,7 @@ export default class stokService {
       if (
         (!currentIdBarang || currentIdBarang.length === 0) &&
         normNamaBarang.length > 0
-      ) {
-        console.log("id_barang is null");
+      ) {        
         const exactBarang = await db.select(
           "SELECT * FROM barang WHERE nama_barang = ? LIMIT 1",
           [normNamaBarang]
@@ -74,8 +71,7 @@ export default class stokService {
           const candidatesBarang = await db.select(
             "SELECT nama_barang FROM barang WHERE nama_barang LIKE ? LIMIT 5",
             [normNamaBarang + "%"]
-          );
-          console.log("candidatesBarang: " + candidatesBarang);
+          );          
 
           if (candidatesBarang.length === 0) {
             const createdBarang = await db.execute(
@@ -110,8 +106,7 @@ export default class stokService {
       if (
         (!currentIdPBF || currentIdPBF.toString().length === 0) &&
         normNamaPBF.length > 0
-      ) {
-        console.log("id_pbf is null");
+      ) {        
         const exactPBF = await db.select(
           "SELECT id_pbf, nama_pbf FROM pbf WHERE UPPER(nama_pbf) = ? LIMIT 1",
           [normNamaPBF]
@@ -124,8 +119,7 @@ export default class stokService {
             [normNamaPBF + "%"]
           );
 
-          if (candidatesPBF.length === 0) {
-            console.log("current id_pbf has no candidates");
+          if (candidatesPBF.length === 0) {            
             const createdPBF = await db.execute(
               "INSERT INTO pbf (nama_pbf) VALUES ($1)",
               [normNamaPBF]
