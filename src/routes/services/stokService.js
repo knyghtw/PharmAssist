@@ -35,7 +35,7 @@ export default class stokService {
       throw error;
     }
   }
-  
+
   static async createItem(
     id_barang,
     id_pbf,
@@ -45,13 +45,15 @@ export default class stokService {
     harga_beli_per_satuan,
     harga_jual_per_satuan,
     tanggal_expired,
-    jumlah_stok
+    jumlah_stok,
+    is_new_barang,
+    is_new_pbf
   ) {
     try {
       const db = await this.getDB();
 
-      const normNamaBarang = nama_barang ? nama_barang.toUpperCase() : "";      
-      const normNamaPBF = nama_pbf ? nama_pbf.toUpperCase() : "";      
+      const normNamaBarang = nama_barang ? nama_barang.toUpperCase() : "";
+      const normNamaPBF = nama_pbf ? nama_pbf.toUpperCase() : "";
       let currentIdBarang = id_barang;
       let currentIdPBF = id_pbf;
 
@@ -59,20 +61,23 @@ export default class stokService {
       if (
         (!currentIdBarang || currentIdBarang.length === 0) &&
         normNamaBarang.length > 0
-      ) {        
+      ) {
         const exactBarang = await db.select(
           "SELECT * FROM barang WHERE nama_barang = ? LIMIT 1",
           [normNamaBarang]
         );
-        if (exactBarang.id_barang) {
-          currentIdBarang = exactBarang.id_barang;
+        if (exactBarang.length === 1) {
+          currentIdBarang = exactBarang[0].id_barang;
         } else {
           const candidatesBarang = await db.select(
             "SELECT nama_barang FROM barang WHERE nama_barang LIKE ? LIMIT 5",
             [normNamaBarang + "%"]
-          );          
+          );
 
-          if (candidatesBarang.length === 0) {
+          if (
+            candidatesBarang.length === 0 ||
+            (candidatesBarang.length > 1 && is_new_barang)
+          ) {
             const createdBarang = await db.execute(
               "INSERT INTO barang (nama_barang) VALUES ($1)",
               [normNamaBarang]
@@ -105,20 +110,23 @@ export default class stokService {
       if (
         (!currentIdPBF || currentIdPBF.toString().length === 0) &&
         normNamaPBF.length > 0
-      ) {        
+      ) {
         const exactPBF = await db.select(
           "SELECT id_pbf, nama_pbf FROM pbf WHERE UPPER(nama_pbf) = ? LIMIT 1",
           [normNamaPBF]
         );
-        if (exactPBF.id_pbf) {
-          currentIdPBF = exactPBF.id_pbf;
+        if (exactPBF.length === 1) {
+          currentIdPBF = exactPBF[0].id_pbf;
         } else {
           const candidatesPBF = await db.select(
-            "SELECT id_pbf, nama_pbf FROM pbf WHERE UPPER(nama_pbf) LIKE ? LIMIT 5",
+            "SELECT id_pbf, nama_pbf FROM pbf WHERE nama_pbf LIKE ? LIMIT 5",
             [normNamaPBF + "%"]
           );
 
-          if (candidatesPBF.length === 0) {            
+          if (
+            candidatesPBF.length === 0 ||
+            (candidatesPBF.length > 1 && is_new_pbf)
+          ) {
             const createdPBF = await db.execute(
               "INSERT INTO pbf (nama_pbf) VALUES ($1)",
               [normNamaPBF]
