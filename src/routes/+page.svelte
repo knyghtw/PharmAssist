@@ -97,8 +97,6 @@
     {
       id_barang: 0,
       nama_barang: "",
-      satuan: "",
-      jml_stok: 0,
     },
   ]);
 
@@ -140,7 +138,6 @@
 
   let nama_pbf = $state("");
   let nama_barang = $state("");
-  let satuan = $state("");
 
   let nomor_batch = $state("");
   let harga_beli_per_satuan = $state(0);
@@ -227,8 +224,10 @@
         jumlah_stok = 0;
         await getItems();
       } else if (result.message == "confirm_barang") {
+        items_barang = result.data;
         requireBarangConfirmation = true;
       } else if (result.message == "confirm_pbf") {
+        items_pbf = result.data;
         requirePBFConfirmation = true;
       } else if (result.success == false) {
         actionFailed = true;
@@ -468,22 +467,116 @@
         Beberapa item mirip {nama_barang}. Silakan pilih item yang sesuai, atau
         buat data baru.
       </h4>
-
-      <Button
-        color="alternative"
-        class="me-2"
-        onclick={() => {
-          requireBarangConfirmation = false;
-          isNewBarang = true;
-          setStokObat();
-        }}>Buat Baru</Button
-      >
-      <Button
-        color="yellow"
-        onclick={() => {
-          requireBarangConfirmation = false;
-        }}>Batal</Button
-      >
+      <Table innerDivClass="left-0 my-2" hoverable={true}>
+        <TableHead>
+          <TableHeadCell>No</TableHeadCell>
+          <TableHeadCell>Nama Obat</TableHeadCell>
+          <TableHeadCell>
+            <span class="sr-only">Aksi</span>
+          </TableHeadCell>
+        </TableHead>
+        <TableBody tableBodyClass="divide-y">
+          {#each items_barang as item, index}
+            <TableBodyRow>
+              <TableBodyCell>{index + 1}</TableBodyCell>
+              <TableBodyCell>{item.nama_barang}</TableBodyCell>
+              <TableBodyCell>
+                <Button
+                  color="blue"                  
+                  class="!p-2"
+                  onclick={() => {
+                    console.log("item.id_barang: " + item.id_barang);
+                    selectedBarangId = item.id_barang;
+                    setStokObat();
+                    requireBarangConfirmation = false;
+                  }}
+                >
+                  Pilih
+                </Button>
+              </TableBodyCell>
+            </TableBodyRow>
+          {/each}
+        </TableBody>
+      </Table>
+      <div class="flex space-x-4">
+        <Button
+          color="alternative"
+          class="me-2"
+          onclick={() => {
+            isNewBarang = true;
+            setStokObat();
+            requireBarangConfirmation = false;
+          }}>Buat Baru</Button
+        >
+        <Button
+          color="yellow"
+          onclick={() => {
+            requireBarangConfirmation = false;
+          }}>Batal</Button
+        >
+      </div>
+    </div>
+  </Modal>
+  <Modal bind:open={requirePBFConfirmation} size="xs" autoclose outsideclose>
+    <div class="text-center">
+      <ExclamationCircleOutline
+        class="mx-auto mb-4 text-yellow-400 w-12 h-12 dark:text-yellow-200"
+      />
+      <h3 class="mb-1 text-lg font-semibold text-gray-500 dark:text-gray-400">
+        Peringatan
+      </h3>
+      <h4 class="mb-2 text-gray-500 dark:text-gray-400">
+        Beberapa item PBF mirip {nama_pbf}. Silakan pilih item yang sesuai, atau
+        buat data baru.
+      </h4>
+      <Table innerDivClass="left-0 my-2" hoverable={true}>
+        <TableHead>
+          <TableHeadCell>No</TableHeadCell>
+          <TableHeadCell>Nama PBF</TableHeadCell>
+          <TableHeadCell>
+            <span class="sr-only">Aksi</span>
+          </TableHeadCell>
+        </TableHead>
+        <TableBody tableBodyClass="divide-y">
+          {#each items_pbf as item, index}
+            <TableBodyRow>
+              <TableBodyCell>{index + 1}</TableBodyCell>
+              <TableBodyCell>{item.nama_pbf}</TableBodyCell>
+              <TableBodyCell>
+                <Button
+                  color="blue"
+                  pill={true}
+                  class="!p-2"
+                  onclick={() => {
+                    selectedPBFId = item.id_pbf;
+                    setStokObat();
+                    requirePBFConfirmation = false;
+                  }}
+                >
+                  Pilih
+                </Button>
+              </TableBodyCell>
+            </TableBodyRow>
+          {/each}
+        </TableBody>
+      </Table>
+      <div class="flex space-x-4">
+        <Button
+          color="alternative"
+          class="me-2"
+          onclick={() => {
+            isNewPBF = true;
+            setStokObat();
+            requirePBFConfirmation = false;
+          }}>Buat Baru</Button
+        >
+        <Button
+          color="yellow"
+          onclick={() => {
+            requirePBFConfirmation = false;
+          }}>Batal</Button
+        >
+      </div>
     </div>
   </Modal>
   <Modal bind:open={deleteConfirmation} size="xs" autoclose outsideclose>
@@ -513,7 +606,7 @@
         }}>Tidak</Button
       >
     </div>
-  </Modal>  
+  </Modal>
   <Modal bind:open={clickEditStokModal} autoclose={false} outsideclose>
     <form
       class="flex flex-col space-y-4"
@@ -674,7 +767,7 @@
         </Button>
       </div>
     </form>
-  </Modal>  
+  </Modal>
   <Modal bind:open={clickCreateStokModal} autoclose={false} outsideclose>
     <form
       class="flex flex-col space-y-4"

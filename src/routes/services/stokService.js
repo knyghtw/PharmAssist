@@ -70,7 +70,7 @@ export default class stokService {
           currentIdBarang = exactBarang[0].id_barang;
         } else {
           const candidatesBarang = await db.select(
-            "SELECT nama_barang FROM barang WHERE nama_barang LIKE ? LIMIT 5",
+            "SELECT * FROM barang WHERE nama_barang LIKE ? LIMIT 5",
             [normNamaBarang + "%"]
           );
 
