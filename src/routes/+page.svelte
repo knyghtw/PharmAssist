@@ -30,6 +30,7 @@
 
   import {
     AdjustmentsHorizontalSolid,
+    AngleDownOutline,
     CheckCircleOutline,
     PlusOutline,
     BellActiveSolid,
@@ -42,6 +43,8 @@
     TrashBinSolid,
     CloseCircleOutline,
   } from "flowbite-svelte-icons";
+
+  import { slide } from "svelte/transition";
 
   import Database from "@tauri-apps/plugin-sql";
   import pbfService from "./services/pbfService";
@@ -80,6 +83,7 @@
   let showSuggestionsPBF = $state(false);
   let newNotification = $state(false);
   let hasClickedNotification = $state(false);
+  let showDetail = $state(false);
 
   let searchTermBarang = $state("");
   let searchTermStok = $state("");
@@ -92,6 +96,7 @@
   let selectedBarangId = $state(0);
   let selectedStokId = $state(0);
   let errorMessage = $state("");
+  let openRow = $state(0);
 
   let items_barang = $state([
     {
@@ -105,6 +110,18 @@
       id_stok: 0,
       id_barang: null,
       nama_barang: "",
+      no_batch: "",
+      harga_beli_per_satuan: null,
+      harga_jual_per_satuan: null,
+      tanggal_expired: "",
+      total_stok: null,
+    },
+  ]);
+
+  //TODO: handle the stok detail
+  let items_stok_detail = $state([
+    {
+      id_stok: 0,
       no_batch: "",
       harga_beli_per_satuan: null,
       harga_jual_per_satuan: null,
@@ -148,6 +165,11 @@
   async function getStok() {
     const stok = await stokService.getItems();
     items_stok = stok;
+  }
+
+  async function getStokDetail() {
+    const stokdetail = await stokService.getDetails();
+    items_stok_detail = stokdetail;
   }
 
   async function getExpiryWarnItems() {
@@ -369,6 +391,10 @@
       year: "numeric",
     });
   };
+
+  const toggleRow = (i) => {
+    openRow = openRow === i ? null : i;
+  };
 </script>
 
 <main class="m-4">
@@ -482,7 +508,7 @@
               <TableBodyCell>{item.nama_barang}</TableBodyCell>
               <TableBodyCell>
                 <Button
-                  color="blue"                  
+                  color="blue"
                   class="!p-2"
                   onclick={() => {
                     console.log("item.id_barang: " + item.id_barang);
@@ -1064,14 +1090,9 @@
         <Table innerDivClass="left-0 my-2" hoverable={true}>
           <TableHead>
             <TableHeadCell>No</TableHeadCell>
-            <TableHeadCell>Tgl Pengisian</TableHeadCell>
             <TableHeadCell>Nama Obat</TableHeadCell>
             <TableHeadCell>PBF</TableHeadCell>
-            <TableHeadCell>No Batch</TableHeadCell>
-            <TableHeadCell>Harga Beli</TableHeadCell>
-            <TableHeadCell>Harga Jual</TableHeadCell>
-            <TableHeadCell>Tanggal Expired</TableHeadCell>
-            <TableHeadCell>Jumlah Stok</TableHeadCell>
+            <TableHeadCell>Total Stok</TableHeadCell>
             <TableHeadCell>
               <span class="sr-only">Aksi</span>
             </TableHeadCell>
@@ -1080,51 +1101,97 @@
             {#each items_stok.filter((item) => item.nama_barang
                 .toLowerCase()
                 .includes(searchTermStok.toLowerCase())) as item, index}
-              <TableBodyRow>
+              <TableBodyRow onclick={() => toggleRow(index)}>
                 <TableBodyCell>{index + 1}</TableBodyCell>
-                <TableBodyCell>{item.tanggal}</TableBodyCell>
                 <TableBodyCell>{item.nama_barang}</TableBodyCell>
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
-                <TableBodyCell>{item.no_batch}</TableBodyCell>
-                <TableBodyCell>Rp. {item.harga_beli_per_satuan}</TableBodyCell>
-                <TableBodyCell>Rp. {item.harga_jual_per_satuan}</TableBodyCell>
-                <TableBodyCell>{item.tanggal_expired}</TableBodyCell>
-                <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
+                <TableBodyCell>{item.total_stok}</TableBodyCell>
                 <TableBodyCell>
-                  <div class="flex space-x-4">
-                    <Button
-                      color="yellow"
-                      pill={true}
-                      class="!p-2"
-                      onclick={() => {
-                        selectedStokId = item.id_stok;
-                        selectedBarangId = item.id_barang;
-                        nama_barang = item.nama_barang;
-                        selectedPBFId = item.id_pbf;
-                        nama_pbf = item.nama_pbf;
-                        nomor_batch = item.no_batch;
-                        harga_beli_per_satuan = item.harga_beli_per_satuan;
-                        harga_jual_per_satuan = item.harga_jual_per_satuan;
-                        jumlah_stok = item.jumlah_stok;
-                        clickEditStokModal = true;
-                      }}
-                    >
-                      <PenSolid class="w-6 h-6" />
-                    </Button>
-                    <Button
-                      color="red"
-                      pill={true}
-                      class="!p-2"
-                      onclick={() => {
-                        selectedStokId = item.id_stok;
-                        selectedBarang = item.nama_barang;
-                        deleteConfirmation = true;
-                        deleteStokAlert = true;
-                      }}><TrashBinSolid class="w-6 h-6" /></Button
-                    >
-                  </div>
+                  <AngleDownOutline />
                 </TableBodyCell>
               </TableBodyRow>
+              {#if openRow === index}
+                <TableBodyRow
+                  ondblclick={() => {
+                    showDetail = true;
+                  }}
+                >
+                  <TableBodyCell colspan={5} class="p-0">
+                    <div
+                      class="px-2 py-3"
+                      transition:slide={{ duration: 150, axis: "y" }}
+                    >
+                      <Table hoverable={true} color="blue">
+                        <TableHead>
+                          <TableHeadCell>No</TableHeadCell>
+                          <TableHeadCell>No Batch</TableHeadCell>
+                          <TableHeadCell>Harga Beli</TableHeadCell>
+                          <TableHeadCell>Harga Jual</TableHeadCell>
+                          <TableHeadCell>Tanggal Expired</TableHeadCell>
+                          <TableHeadCell>Jumlah Stok</TableHeadCell>
+                          <TableHeadCell>
+                            <span class="sr-only">Aksi</span>
+                          </TableHeadCell>
+                        </TableHead>
+                        <TableBody tableBodyClass="divide-y">
+                          {#each items_stok_detail as item, index}
+                            <TableBodyRow>
+                              <TableBodyCell>{index + 1}</TableBodyCell>
+                              <TableBodyCell>{item.no_batch}</TableBodyCell>
+                              <TableBodyCell
+                                >Rp. {item.harga_beli_per_satuan}</TableBodyCell
+                              >
+                              <TableBodyCell
+                                >Rp. {item.harga_jual_per_satuan}</TableBodyCell
+                              >
+                              <TableBodyCell
+                                >{item.tanggal_expired}</TableBodyCell
+                              >
+                              <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
+                              <TableBodyCell>
+                                <div class="flex space-x-4">
+                                  <Button
+                                    color="yellow"
+                                    pill={true}
+                                    class="!p-2"
+                                    onclick={() => {
+                                      selectedStokId = item.id_stok;
+                                      selectedBarangId = item.id_barang;
+                                      nama_barang = item.nama_barang;
+                                      selectedPBFId = item.id_pbf;
+                                      nama_pbf = item.nama_pbf;
+                                      nomor_batch = item.no_batch;
+                                      harga_beli_per_satuan =
+                                        item.harga_beli_per_satuan;
+                                      harga_jual_per_satuan =
+                                        item.harga_jual_per_satuan;
+                                      jumlah_stok = item.jumlah_stok;
+                                      clickEditStokModal = true;
+                                    }}
+                                  >
+                                    <PenSolid class="w-6 h-6" />
+                                  </Button>
+                                  <Button
+                                    color="red"
+                                    pill={true}
+                                    class="!p-2"
+                                    onclick={() => {
+                                      selectedStokId = item.id_stok;
+                                      selectedBarang = item.nama_barang;
+                                      deleteConfirmation = true;
+                                      deleteStokAlert = true;
+                                    }}><TrashBinSolid class="w-6 h-6" /></Button
+                                  >
+                                </div>
+                              </TableBodyCell>
+                            </TableBodyRow>
+                          {/each}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TableBodyCell>
+                </TableBodyRow>
+              {/if}
             {/each}
           </TableBody>
         </Table>

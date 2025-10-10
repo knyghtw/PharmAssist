@@ -14,11 +14,24 @@ export default class stokService {
     try {
       const db = await this.getDB();
       const result = await db.select(
-        "SELECT s.*, b.nama_barang, p.nama_pbf FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf"
+        "SELECT b.id_barang, b.nama_barang, p.id_pbf, p.nama_pbf, SUM(s.jumlah_stok) AS total_stok FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf GROUP BY b.id_barang, p.id_pbf, b.nama_barang, p.nama_pbf ORDER BY b.nama_barang"
       );
       return result;
     } catch (error) {
       console.error("Error fetching items:", error);
+      throw error;
+    }
+  }
+
+  static async getDetails() {
+    try {
+      const db = await this.getDB();
+      const result = await db.select(
+        "SELECT id_stok, no_batch, harga_beli_per_satuan, harga_jual_per_satuan, tanggal_expired, jumlah_stok FROM stok_obat WHERE id_barang = ? AND id_pbf = ? ORDER BY tanggal_expired ASC, id_stok ASC"
+      );
+      return result;
+    } catch (error) {
+      console.error("Error fetching item details:", error);
       throw error;
     }
   }
