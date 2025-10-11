@@ -118,7 +118,6 @@
     },
   ]);
 
-  //TODO: handle the stok detail
   let items_stok_detail = $state([
     {
       id_stok: 0,
@@ -170,6 +169,14 @@
   async function getStokDetail(id_barang, id_pbf) {
     const stokdetail = await stokService.getDetails(id_barang, id_pbf);
     items_stok_detail = stokdetail;
+  }
+
+  async function getExactItem(id_barang, id_pbf) {
+    const exactitem = await stokService.getExactItem(id_barang, id_pbf);
+    if (exactitem.length === 1) {
+      harga_beli_per_satuan = exactitem.harga_beli_per_satuan;
+      harga_jual_per_satuan = exactitem.harga_jual_per_satuan;
+    }
   }
 
   async function getExpiryWarnItems() {
@@ -287,7 +294,7 @@
         jumlah_stok
       );
       actionSuccess = true;
-      editDataAction = true;      
+      editDataAction = true;
       await getItems();
       await getStokDetail(selectedBarangId, selectedPBFId);
       await clearInput();
@@ -353,8 +360,8 @@
       return;
     }
 
-    const filteredItems = items_barang.filter((item) =>
-      item.nama_barang.toLowerCase().includes(event.target.value.toLowerCase())
+    const filteredItems = items_stok.filter((item) =>
+      item.nama_barang.includes(event.target.value.toUpperCase())
     );
 
     suggestionsBarang = filteredItems.slice(0, 5);
@@ -368,8 +375,8 @@
       return;
     }
 
-    const filteredItems = items_pbf.filter((item) =>
-      item.nama_pbf.toLowerCase().includes(event.target.value.toLowerCase())
+    const filteredItems = items_stok.filter((item) =>
+      item.nama_pbf.includes(event.target.value.toUpperCase())
     );
 
     suggestionsPBF = filteredItems.slice(0, 5);
@@ -827,6 +834,13 @@
             onfocus={() => {
               if (nama_barang.length > 0) showSuggestionsBarang = true;
             }}
+            onfocusout={() => {
+              if (selectedBarangId != null && selectedPBFId != null) {
+                getExactItem(selectedBarangId, selectedPBFId);
+              } else {
+                getExactItem(nama_barang, nama_pbf);
+              }
+            }}
             required
           />
           {#if showSuggestionsBarang && suggestionsBarang.length > 0}
@@ -859,6 +873,13 @@
             onkeydown={autocompletePBF}
             onfocus={() => {
               if (nama_pbf.length > 0) showSuggestionsPBF = true;
+            }}
+            onfocusout={() => {
+              if (selectedBarangId != null && selectedPBFId != null) {
+                getExactItem(selectedBarangId, selectedPBFId);
+              } else {
+                getExactItem(nama_barang, nama_pbf);
+              }
             }}
             required
           />
