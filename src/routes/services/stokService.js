@@ -23,6 +23,19 @@ export default class stokService {
     }
   }
 
+  static async getExactItem() {
+    try {
+      const db = await this.getDB();
+      const result = await db.select(
+        "SELECT b.id_barang, b.nama_barang, p.id_pbf, p.nama_pbf, s.harga_beli_per_satuan, s.harga_jual_per_satuan FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf WHERE b.id_barang = 6 AND p.id_pbf = 3 GROUP BY b.id_barang, p.id_pbf, b.nama_barang, p.nama_pbf LIMIT 1"
+      );
+      return result;
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      throw error;
+    }
+  }
+
   static async getDetails(id_barang, id_pbf) {
     try {
       const db = await this.getDB();
