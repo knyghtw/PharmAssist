@@ -23,11 +23,12 @@ export default class stokService {
     }
   }
 
-  static async getExactItem() {
+  static async getExactItem(id_barang, id_pbf) {
     try {
       const db = await this.getDB();
       const result = await db.select(
-        "SELECT b.id_barang, b.nama_barang, p.id_pbf, p.nama_pbf, s.harga_beli_per_satuan, s.harga_jual_per_satuan FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf WHERE b.id_barang = 6 AND p.id_pbf = 3 GROUP BY b.id_barang, p.id_pbf, b.nama_barang, p.nama_pbf LIMIT 1"
+        "SELECT b.id_barang, b.nama_barang, p.id_pbf, p.nama_pbf, s.harga_beli_per_satuan, s.harga_jual_per_satuan FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf WHERE b.id_barang = ? AND p.id_pbf = ? GROUP BY b.id_barang, p.id_pbf, b.nama_barang, p.nama_pbf LIMIT 1",
+        [id_barang, id_pbf]
       );
       return result;
     } catch (error) {
@@ -42,7 +43,7 @@ export default class stokService {
       const result = await db.select(
         "SELECT id_stok, no_batch, harga_beli_per_satuan, harga_jual_per_satuan, tanggal_expired, jumlah_stok FROM stok_obat WHERE id_barang = ? AND id_pbf = ? ORDER BY tanggal_expired ASC, id_stok ASC",
         [id_barang, id_pbf]
-      );      
+      );
       return result;
     } catch (error) {
       console.error("Error fetching item details:", error);
