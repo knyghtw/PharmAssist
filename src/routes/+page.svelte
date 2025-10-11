@@ -353,6 +353,7 @@
     }
   }
 
+  //TODO: FIX AUTOSUGGESTION
   const autocompleteBarang = (event) => {
     if (nama_barang.length <= 1) {
       suggestionsBarang = [];
