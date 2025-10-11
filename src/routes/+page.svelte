@@ -96,7 +96,7 @@
   let selectedBarangId = $state(0);
   let selectedStokId = $state(0);
   let errorMessage = $state("");
-  let openRow = $state(0);
+  let openRow = $state(-1);
 
   let items_barang = $state([
     {
@@ -167,8 +167,8 @@
     items_stok = stok;
   }
 
-  async function getStokDetail() {
-    const stokdetail = await stokService.getDetails();
+  async function getStokDetail(id_barang, id_pbf) {
+    const stokdetail = await stokService.getDetails(id_barang, id_pbf);
     items_stok_detail = stokdetail;
   }
 
@@ -216,6 +216,18 @@
 
   setupNotification();
 
+  async function clearInput() {
+    nama_barang = "";
+    nama_pbf = "";
+    selectedBarangId = 0;
+    selectedPBFId = 0;
+    nomor_batch = "";
+    harga_beli_per_satuan = 0;
+    harga_jual_per_satuan = 0;
+    tanggal_expired = null;
+    jumlah_stok = 0;
+  }
+
   async function setStokObat() {
     try {
       const result = await stokService.createItem(
@@ -235,15 +247,7 @@
       if (result.success == true) {
         actionSuccess = true;
         addDataAction = true;
-        nama_barang = "";
-        nama_pbf = "";
-        selectedBarangId = 0;
-        selectedPBFId = 0;
-        nomor_batch = "";
-        harga_beli_per_satuan = 0;
-        harga_jual_per_satuan = 0;
-        tanggal_expired = null;
-        jumlah_stok = 0;
+        await clearInput();
         await getItems();
       } else if (result.message == "confirm_barang") {
         items_barang = result.data;
@@ -283,8 +287,10 @@
         jumlah_stok
       );
       actionSuccess = true;
-      editDataAction = true;
+      editDataAction = true;      
       await getItems();
+      await getStokDetail(selectedBarangId, selectedPBFId);
+      await clearInput();
     } catch (error) {
       actionFailed = true;
       errorMessage = error;
@@ -297,6 +303,7 @@
       actionSuccess = true;
       deleteDataAction = true;
       await getItems();
+      await clearInput();
     } catch (error) {
       actionFailed = true;
       errorMessage = error;
@@ -939,7 +946,7 @@
           type="button"
           color="alternative"
           onclick={() => {
-            clickCreateDataModal = false;
+            clickCreateStokModal = false;
           }}
         >
           Batal
@@ -1101,7 +1108,12 @@
             {#each items_stok.filter((item) => item.nama_barang
                 .toLowerCase()
                 .includes(searchTermStok.toLowerCase())) as item, index}
-              <TableBodyRow onclick={() => toggleRow(index)}>
+              <TableBodyRow
+                onclick={() => {
+                  toggleRow(index);
+                  getStokDetail(item.id_barang, item.id_pbf);
+                }}
+              >
                 <TableBodyCell>{index + 1}</TableBodyCell>
                 <TableBodyCell>{item.nama_barang}</TableBodyCell>
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
@@ -1111,11 +1123,7 @@
                 </TableBodyCell>
               </TableBodyRow>
               {#if openRow === index}
-                <TableBodyRow
-                  ondblclick={() => {
-                    showDetail = true;
-                  }}
-                >
+                <TableBodyRow>
                   <TableBodyCell colspan={5} class="p-0">
                     <div
                       class="px-2 py-3"
@@ -1134,20 +1142,24 @@
                           </TableHeadCell>
                         </TableHead>
                         <TableBody tableBodyClass="divide-y">
-                          {#each items_stok_detail as item, index}
+                          {#each items_stok_detail as item_detail, i}
                             <TableBodyRow>
-                              <TableBodyCell>{index + 1}</TableBodyCell>
-                              <TableBodyCell>{item.no_batch}</TableBodyCell>
+                              <TableBodyCell>{i + 1}</TableBodyCell>
                               <TableBodyCell
-                                >Rp. {item.harga_beli_per_satuan}</TableBodyCell
+                                >{item_detail.no_batch}</TableBodyCell
                               >
                               <TableBodyCell
-                                >Rp. {item.harga_jual_per_satuan}</TableBodyCell
+                                >Rp. {item_detail.harga_beli_per_satuan}</TableBodyCell
                               >
                               <TableBodyCell
-                                >{item.tanggal_expired}</TableBodyCell
+                                >Rp. {item_detail.harga_jual_per_satuan}</TableBodyCell
                               >
-                              <TableBodyCell>{item.jumlah_stok}</TableBodyCell>
+                              <TableBodyCell
+                                >{item_detail.tanggal_expired}</TableBodyCell
+                              >
+                              <TableBodyCell
+                                >{item_detail.jumlah_stok}</TableBodyCell
+                              >
                               <TableBodyCell>
                                 <div class="flex space-x-4">
                                   <Button
@@ -1155,17 +1167,20 @@
                                     pill={true}
                                     class="!p-2"
                                     onclick={() => {
-                                      selectedStokId = item.id_stok;
+                                      selectedStokId = item_detail.id_stok;
                                       selectedBarangId = item.id_barang;
                                       nama_barang = item.nama_barang;
                                       selectedPBFId = item.id_pbf;
                                       nama_pbf = item.nama_pbf;
-                                      nomor_batch = item.no_batch;
+                                      nomor_batch = item_detail.no_batch;
                                       harga_beli_per_satuan =
-                                        item.harga_beli_per_satuan;
+                                        item_detail.harga_beli_per_satuan;
                                       harga_jual_per_satuan =
-                                        item.harga_jual_per_satuan;
-                                      jumlah_stok = item.jumlah_stok;
+                                        item_detail.harga_jual_per_satuan;
+                                      tanggal_expired = new Date(
+                                        item_detail.tanggal_expired
+                                      );
+                                      jumlah_stok = item_detail.jumlah_stok;
                                       clickEditStokModal = true;
                                     }}
                                   >

@@ -23,12 +23,13 @@ export default class stokService {
     }
   }
 
-  static async getDetails() {
+  static async getDetails(id_barang, id_pbf) {
     try {
       const db = await this.getDB();
       const result = await db.select(
-        "SELECT id_stok, no_batch, harga_beli_per_satuan, harga_jual_per_satuan, tanggal_expired, jumlah_stok FROM stok_obat WHERE id_barang = ? AND id_pbf = ? ORDER BY tanggal_expired ASC, id_stok ASC"
-      );
+        "SELECT id_stok, no_batch, harga_beli_per_satuan, harga_jual_per_satuan, tanggal_expired, jumlah_stok FROM stok_obat WHERE id_barang = ? AND id_pbf = ? ORDER BY tanggal_expired ASC, id_stok ASC",
+        [id_barang, id_pbf]
+      );      
       return result;
     } catch (error) {
       console.error("Error fetching item details:", error);
