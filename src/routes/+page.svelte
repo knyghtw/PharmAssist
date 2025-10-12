@@ -173,9 +173,11 @@
 
   async function getExactItem(id_barang, id_pbf) {
     const exactitem = await stokService.getExactItem(id_barang, id_pbf);
-    if (exactitem.length === 1) {
-      harga_beli_per_satuan = exactitem.harga_beli_per_satuan;
-      harga_jual_per_satuan = exactitem.harga_jual_per_satuan;
+    console.log("exactitem = " + exactitem);
+    console.log("exactitem length = " + exactitem.length);
+    if (exactitem.length == 1) {
+      harga_beli_per_satuan = exactitem[0].harga_beli_per_satuan;
+      harga_jual_per_satuan = exactitem[0].harga_jual_per_satuan;
     }
   }
 
@@ -836,6 +838,8 @@
               if (nama_barang.length > 0) showSuggestionsBarang = true;
             }}
             onfocusout={() => {
+              console.log("selectedBarangId = " + selectedBarangId);
+              console.log("selectedPBFId = " + selectedPBFId);
               if (selectedBarangId != null && selectedPBFId != null) {
                 getExactItem(selectedBarangId, selectedPBFId);
               } else {
@@ -876,6 +880,8 @@
               if (nama_pbf.length > 0) showSuggestionsPBF = true;
             }}
             onfocusout={() => {
+              console.log("selectedBarangId = " + selectedBarangId);
+              console.log("selectedPBFId = " + selectedPBFId);
               if (selectedBarangId != null && selectedPBFId != null) {
                 getExactItem(selectedBarangId, selectedPBFId);
               } else {
