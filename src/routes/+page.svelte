@@ -20,6 +20,7 @@
     Input,
     Search,
     Select,
+    Checkbox,
   } from "flowbite-svelte";
 
   import {
@@ -65,8 +66,8 @@
   let isStockAlert = $state(false);
   let isNewBarang = $state(false);
   let isNewPBF = $state(false);
-  let deleteConfirmation = $state(false);
-  let deleteStokAlert = $state(false);
+  let isPercentage = $state(false);
+  let deleteConfirmation = $state(false);  
   let resetConfirmation = $state(false);
   let resetPBFAlert = $state(false);
   let resetBarangAlert = $state(false);
@@ -178,14 +179,14 @@
   }
 
   async function getExactItem(id_barang, id_pbf) {
-    const exactitem = await stokService.getExactItem(id_barang, id_pbf);    
+    const exactitem = await stokService.getExactItem(id_barang, id_pbf);
     if (exactitem.length == 1) {
       harga_beli_per_satuan = exactitem[0].harga_beli_per_satuan;
       harga_jual_per_satuan = exactitem[0].harga_jual_per_satuan;
     }
   }
 
-  async function getExpiryWarnItems() {    
+  async function getExpiryWarnItems() {
     expw_items_stok = await stokService.getExpiryWarnItems();
     if (expw_items_stok.length > 0 && !hasClickedNotification) {
       newNotification = true;
@@ -244,6 +245,11 @@
 
   async function setStokObat() {
     try {
+      if (isPercentage) {
+        const percentage = harga_jual_per_satuan;
+        harga_jual_per_satuan =
+          harga_beli_per_satuan + (harga_beli_per_satuan * percentage);
+      }
       const result = await stokService.createItem(
         selectedBarangId,
         selectedPBFId,
@@ -531,7 +537,7 @@
                 <Button
                   color="blue"
                   class="!p-2"
-                  onclick={() => {                    
+                  onclick={() => {
                     selectedBarangId = item.id_barang;
                     setStokObat();
                     requireBarangConfirmation = false;
@@ -639,15 +645,14 @@
         color="red"
         class="me-2"
         onclick={() => {
-          deleteStok();
-          deleteStokAlert = false;
+          deleteStok();          
           deleteConfirmation = false;
+          openRow = -1;
         }}>Ya</Button
       >
       <Button
         color="alternative"
-        onclick={() => {
-          deleteStokAlert = false;
+        onclick={() => {          
           deleteConfirmation = false;
         }}>Tidak</Button
       >
@@ -765,14 +770,19 @@
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Jual</span>
-        <Input
-          bind:value={harga_jual_per_satuan}
-          type="number"
-          name="harga_jual_per_satuan"
-          placeholder="11000"
-          class="font-normal"
-          required
-        />
+        <div class="flex space-x-1">
+          <Input
+            bind:value={harga_jual_per_satuan}
+            type="number"
+            name="harga_jual_per_satuan"
+            placeholder="11000"
+            class="font-normal flex-1"
+            required
+          />
+          <div class="flex flex-none">
+            <Checkbox bind:checked={isPercentage}>%</Checkbox>
+          </div>
+        </div>
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Tanggal Expired</span>
@@ -840,7 +850,7 @@
             onfocus={() => {
               if (nama_barang.length > 0) showSuggestionsBarang = true;
             }}
-            onfocusout={() => {              
+            onfocusout={() => {
               if (selectedBarangId != null && selectedPBFId != null) {
                 getExactItem(selectedBarangId, selectedPBFId);
               } else {
@@ -880,7 +890,7 @@
             onfocus={() => {
               if (nama_pbf.length > 0) showSuggestionsPBF = true;
             }}
-            onfocusout={() => {              
+            onfocusout={() => {
               if (selectedBarangId != null && selectedPBFId != null) {
                 getExactItem(selectedBarangId, selectedPBFId);
               } else {
@@ -931,14 +941,19 @@
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Jual</span>
-        <Input
-          bind:value={harga_jual_per_satuan}
-          type="number"
-          name="harga_jual_per_satuan"
-          placeholder="11000"
-          class="font-normal"
-          required
-        />
+        <div class="flex space-x-1">
+          <Input
+            bind:value={harga_jual_per_satuan}
+            type="number"
+            name="harga_jual_per_satuan"
+            placeholder="11000"
+            class="font-normal flex-1"
+            required
+          />
+          <div class="flex flex-none">
+            <Checkbox bind:checked={isPercentage}>%</Checkbox>
+          </div>
+        </div>
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Tanggal Expired</span>
@@ -1218,10 +1233,9 @@
                                     pill={true}
                                     class="!p-2"
                                     onclick={() => {
-                                      selectedStokId = item.id_stok;
+                                      selectedStokId = item_detail.id_stok;
                                       selectedBarang = item.nama_barang;
-                                      deleteConfirmation = true;
-                                      deleteStokAlert = true;
+                                      deleteConfirmation = true;                                      
                                     }}><TrashBinSolid class="w-6 h-6" /></Button
                                   >
                                 </div>
