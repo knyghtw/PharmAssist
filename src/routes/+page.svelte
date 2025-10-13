@@ -161,29 +161,32 @@
   let tanggal_expired = $state(null);
   let jumlah_stok = $state(0);
 
+  async function getBarang() {
+    items_barang = await barangService.getItems();
+  }
+
+  async function getPBF() {
+    items_pbf = await pbfService.getItems();
+  }
+
   async function getStok() {
-    const stok = await stokService.getItems();
-    items_stok = stok;
+    items_stok = await stokService.getItems();
   }
 
   async function getStokDetail(id_barang, id_pbf) {
-    const stokdetail = await stokService.getDetails(id_barang, id_pbf);
-    items_stok_detail = stokdetail;
+    items_stok_detail = await stokService.getDetails(id_barang, id_pbf);
   }
 
   async function getExactItem(id_barang, id_pbf) {
-    const exactitem = await stokService.getExactItem(id_barang, id_pbf);
-    console.log("exactitem = " + exactitem);
-    console.log("exactitem length = " + exactitem.length);
+    const exactitem = await stokService.getExactItem(id_barang, id_pbf);    
     if (exactitem.length == 1) {
       harga_beli_per_satuan = exactitem[0].harga_beli_per_satuan;
       harga_jual_per_satuan = exactitem[0].harga_jual_per_satuan;
     }
   }
 
-  async function getExpiryWarnItems() {
-    const expiryWarnItems = await stokService.getExpiryWarnItems();
-    expw_items_stok = expiryWarnItems;
+  async function getExpiryWarnItems() {    
+    expw_items_stok = await stokService.getExpiryWarnItems();
     if (expw_items_stok.length > 0 && !hasClickedNotification) {
       newNotification = true;
     } else {
@@ -193,6 +196,8 @@
 
   async function getItems() {
     try {
+      await getBarang();
+      await getPBF();
       await getStok();
       await getExpiryWarnItems();
     } catch (error) {
@@ -355,7 +360,6 @@
     }
   }
 
-  //TODO: FIX AUTOSUGGESTION
   const autocompleteBarang = (event) => {
     if (nama_barang.length <= 1) {
       suggestionsBarang = [];
@@ -527,8 +531,7 @@
                 <Button
                   color="blue"
                   class="!p-2"
-                  onclick={() => {
-                    console.log("item.id_barang: " + item.id_barang);
+                  onclick={() => {                    
                     selectedBarangId = item.id_barang;
                     setStokObat();
                     requireBarangConfirmation = false;
@@ -837,9 +840,7 @@
             onfocus={() => {
               if (nama_barang.length > 0) showSuggestionsBarang = true;
             }}
-            onfocusout={() => {
-              console.log("selectedBarangId = " + selectedBarangId);
-              console.log("selectedPBFId = " + selectedPBFId);
+            onfocusout={() => {              
               if (selectedBarangId != null && selectedPBFId != null) {
                 getExactItem(selectedBarangId, selectedPBFId);
               } else {
@@ -879,9 +880,7 @@
             onfocus={() => {
               if (nama_pbf.length > 0) showSuggestionsPBF = true;
             }}
-            onfocusout={() => {
-              console.log("selectedBarangId = " + selectedBarangId);
-              console.log("selectedPBFId = " + selectedPBFId);
+            onfocusout={() => {              
               if (selectedBarangId != null && selectedPBFId != null) {
                 getExactItem(selectedBarangId, selectedPBFId);
               } else {
