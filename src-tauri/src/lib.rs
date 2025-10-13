@@ -28,7 +28,7 @@ pub fn run() {
                     harga_jual_per_satuan DECIMAL NOT NULL,
                     tanggal_expired DATE NOT NULL,
                     jumlah_stok INTEGER NOT NULL,
-                    tanggal DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                    tanggal_input DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
                     FOREIGN KEY (id_barang) REFERENCES barang(id_barang),
                     FOREIGN KEY (id_pbf) REFERENCES pbf(id_pbf),
                     CONSTRAINT unique_stok UNIQUE (id_barang, id_pbf, no_batch)
