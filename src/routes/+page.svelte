@@ -67,7 +67,7 @@
   let isNewBarang = $state(false);
   let isNewPBF = $state(false);
   let isPercentage = $state(false);
-  let deleteConfirmation = $state(false);  
+  let deleteConfirmation = $state(false);
   let resetConfirmation = $state(false);
   let resetPBFAlert = $state(false);
   let resetBarangAlert = $state(false);
@@ -247,8 +247,9 @@
     try {
       if (isPercentage) {
         const percentage = harga_jual_per_satuan;
-        harga_jual_per_satuan =
-          harga_beli_per_satuan + (harga_beli_per_satuan * percentage);
+        harga_jual_per_satuan = Math.floor(
+          harga_beli_per_satuan + harga_beli_per_satuan * (percentage / 100)
+        );
       }
       const result = await stokService.createItem(
         selectedBarangId,
@@ -279,6 +280,7 @@
         actionFailed = true;
         errorMessage = result.message;
       }
+      openRow = -1;
     } catch (error) {
       actionFailed = true;
       errorMessage = error;
@@ -295,6 +297,12 @@
     tanggal_expired,
     jumlah_stok
   ) {
+    if (isPercentage) {
+      const percentage = harga_jual_per_satuan;
+      harga_jual_per_satuan = Math.floor(
+        harga_beli_per_satuan + harga_beli_per_satuan * (percentage / 100)
+      );
+    }
     try {
       const result = await stokService.updateItem(
         selectedStokId,
@@ -645,14 +653,14 @@
         color="red"
         class="me-2"
         onclick={() => {
-          deleteStok();          
+          deleteStok();
           deleteConfirmation = false;
           openRow = -1;
         }}>Ya</Button
       >
       <Button
         color="alternative"
-        onclick={() => {          
+        onclick={() => {
           deleteConfirmation = false;
         }}>Tidak</Button
       >
@@ -1235,7 +1243,7 @@
                                     onclick={() => {
                                       selectedStokId = item_detail.id_stok;
                                       selectedBarang = item.nama_barang;
-                                      deleteConfirmation = true;                                      
+                                      deleteConfirmation = true;
                                     }}><TrashBinSolid class="w-6 h-6" /></Button
                                   >
                                 </div>
