@@ -367,7 +367,7 @@
       return;
     }
 
-    const filteredItems = items_stok.filter((item) =>
+    const filteredItems = items_barang.filter((item) =>
       item.nama_barang.includes(event.target.value.toUpperCase())
     );
 
@@ -382,7 +382,7 @@
       return;
     }
 
-    const filteredItems = items_stok.filter((item) =>
+    const filteredItems = items_pbf.filter((item) =>
       item.nama_pbf.includes(event.target.value.toUpperCase())
     );
 
