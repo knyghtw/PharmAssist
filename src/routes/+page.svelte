@@ -1199,10 +1199,14 @@
                                 >{item_detail.no_batch}</TableBodyCell
                               >
                               <TableBodyCell
-                                >Rp. {item_detail.harga_beli_per_satuan}</TableBodyCell
+                                >Rp. {item_detail.harga_beli_per_satuan.toLocaleString(
+                                  "id-ID"
+                                )}</TableBodyCell
                               >
                               <TableBodyCell
-                                >Rp. {item_detail.harga_jual_per_satuan}</TableBodyCell
+                                >Rp. {item_detail.harga_jual_per_satuan.toLocaleString(
+                                  "id-ID"
+                                )}</TableBodyCell
                               >
                               <TableBodyCell
                                 >{item_detail.tanggal_expired}</TableBodyCell
