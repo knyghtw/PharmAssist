@@ -243,6 +243,7 @@
     harga_jual_per_satuan = 0;
     tanggal_expired = null;
     jumlah_stok = 0;
+    isPercentage = false;
   }
 
   async function setStokObat() {
