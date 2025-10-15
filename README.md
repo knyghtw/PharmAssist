@@ -4,19 +4,15 @@ PharmAssist merupakan aplikasi desktop yang dapat mencatat serta mengelola stok 
 
 ![halaman stok_obat](https://github.com/knyghtw/PharmAssist/blob/main/media/stokobat.png)
 
-## Fitur
-- Manajemen Data PBF
-  - Tambah, edit, dan hapus data PBF (Pedagang Besar Farmasi)
-- Manajemen Data Obat / Barang
-  - Tambah, edit, dan hapus data obat
+## Fitur Aplikasi
 - Manajemen Data Stok Obat
-  - Pencatatan stok masuk dan keluar per batch beserta tanggal kedaluwarsa
-  - Fitur *Autosuggestions* membantu mempercepat proses pencatatan stok
+  - Pencatatan stok per batch beserta tanggal kedaluwarsa
+  - Fitur *Autosuggestions* dan *Autofill* membantu mempercepat proses pencatatan stok
 - Notifikasi Pengingat Obat yang Mendekati Tanggal Kedaluwarsa
   - *Pop-up* notifikasi pada saat aplikasi dibuka jika ada obat yang mendekati tanggal kedaluwarsa
   - Tombol "Lonceng" untuk melihat riwayat notifikasi
 - Reset *Database*
-  - Fitur reset data untuk mengembalikan database ke kondisi awal (pbf, barang, stok_obat) 
+  - Fitur reset data untuk mengembalikan database ke kondisi awal 
 - Ramah Performa dan Tempat Penyimpanan
   - Data disimpan secara lokal menggunakan SQLite untuk akses data yang cepat
   - Desain ringan agar dapat berjalan lancar pada mesin dengan spesifikasi rendah
@@ -28,9 +24,6 @@ PharmAssist merupakan aplikasi desktop yang dapat mencatat serta mengelola stok 
 1. Buka aplikasi `PharmAssist`.
 2. Tambahkan data PBF dan barang sebelum mencatat stok.
 3. Klik pada *tab* stok obat untuk memasukkan stok obat baru.
-
-## Demo
-https://github.com/knyghtw/PharmAssist/blob/main/media/demo.mp4
 
 ## Informasi untuk Pengembang
 ### Rekomendasi Setup IDE
