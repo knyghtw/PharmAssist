@@ -43,6 +43,7 @@
     PenSolid,
     TrashBinSolid,
     CloseCircleOutline,
+    AngleUpOutline,
   } from "flowbite-svelte-icons";
 
   import { slide } from "svelte/transition";
@@ -67,6 +68,7 @@
   let isNewBarang = $state(false);
   let isNewPBF = $state(false);
   let isPercentage = $state(false);
+  let isExtended = $state(false);
   let deleteConfirmation = $state(false);
   let resetConfirmation = $state(false);
   let resetPBFAlert = $state(false);
@@ -1162,6 +1164,7 @@
                 onclick={() => {
                   toggleRow(index);
                   getStokDetail(item.id_barang, item.id_pbf);
+                  isExtended = !isExtended;
                 }}
               >
                 <TableBodyCell>{index + 1}</TableBodyCell>
@@ -1169,7 +1172,11 @@
                 <TableBodyCell>{item.nama_pbf}</TableBodyCell>
                 <TableBodyCell>{item.total_stok}</TableBodyCell>
                 <TableBodyCell>
-                  <AngleDownOutline />
+                  {#if isExtended && openRow === index}
+                    <AngleUpOutline />
+                  {:else}
+                    <AngleDownOutline />
+                  {/if}
                 </TableBodyCell>
               </TableBodyRow>
               {#if openRow === index}
