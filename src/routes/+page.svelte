@@ -6,6 +6,7 @@
     Datepicker,
     Dropdown,
     DropdownItem,
+    DropdownGroup,
     DropdownHeader,
     Table,
     TableBody,
@@ -21,6 +22,7 @@
     Search,
     Select,
     Checkbox,
+    DropdownDivider,
   } from "flowbite-svelte";
 
   import {
@@ -166,10 +168,20 @@
 
   async function getBarang() {
     items_barang = await barangService.getItems();
+    suggestionsBarang = [];
+    for (let i = 0; i < items_barang.length; i++) {
+      suggestionsBarang.push(items_barang[i].nama_barang);
+    }
+    console.log(suggestionsBarang);
   }
 
   async function getPBF() {
     items_pbf = await pbfService.getItems();
+    suggestionsPBF = [];
+    for (let i = 0; i < items_pbf.length; i++) {
+      suggestionsPBF.push(items_pbf[i].nama_pbf);
+    }    
+    console.log(suggestionsPBF);
   }
 
   async function getStok() {
@@ -377,49 +389,49 @@
     }
   }
 
-  const autocompleteBarang = (event) => {
-    if (nama_barang.length <= 1) {
-      suggestionsBarang = [];
-      showSuggestionsBarang = false;
-      return;
-    }
+  // async function autocompleteBarang() {
+  //   if (nama_barang.length <= 1) {
+  //     suggestionsBarang = [];
+  //     showSuggestionsBarang = false;
+  //     return;
+  //   }
 
-    const filteredItems = items_barang.filter((item) =>
-      item.nama_barang.includes(event.target.value.toUpperCase())
-    );
+  //   const filteredItems = items_barang.filter((item) =>
+  //     item.nama_barang.includes(event.target.value.toUpperCase())
+  //   );
 
-    suggestionsBarang = filteredItems.slice(0, 5);
-    showSuggestionsBarang = true;
-  };
+  //   suggestionsBarang = filteredItems.slice(0, 5);
+  //   showSuggestionsBarang = true;
+  // }
 
-  const autocompletePBF = (event) => {
-    if (nama_pbf.length <= 1) {
-      suggestionsPBF = [];
-      showSuggestionsPBF = false;
-      return;
-    }
+  // async function autocompletePBF() {
+  //   if (nama_pbf.length <= 1) {
+  //     suggestionsPBF = [];
+  //     showSuggestionsPBF = false;
+  //     return;
+  //   }
 
-    const filteredItems = items_pbf.filter((item) =>
-      item.nama_pbf.includes(event.target.value.toUpperCase())
-    );
+  //   const filteredItems = items_pbf.filter((item) =>
+  //     item.nama_pbf.includes(event.target.value.toUpperCase())
+  //   );
 
-    suggestionsPBF = filteredItems.slice(0, 5);
-    showSuggestionsPBF = true;
-  };
+  //   suggestionsPBF = filteredItems.slice(0, 5);
+  //   showSuggestionsPBF = true;
+  // }
 
-  const selectSuggestionBarang = (selectedItem) => {
-    nama_barang = selectedItem.nama_barang;
-    selectedBarangId = selectedItem.id_barang;
-    suggestionsBarang = [];
-    showSuggestionsBarang = false;
-  };
+  // const selectSuggestionBarang = (selectedItem) => {
+  //   nama_barang = selectedItem.nama_barang;
+  //   selectedBarangId = selectedItem.id_barang;
+  //   suggestionsBarang = [];
+  //   showSuggestionsBarang = false;
+  // };
 
-  const selectSuggestionPBF = (selectedItem) => {
-    nama_pbf = selectedItem.nama_pbf;
-    selectedPBFId = selectedItem.id_pbf;
-    suggestionsPBF = [];
-    showSuggestionsPBF = false;
-  };
+  // const selectSuggestionPBF = (selectedItem) => {
+  //   nama_pbf = selectedItem.nama_pbf;
+  //   selectedPBFId = selectedItem.id_pbf;
+  //   suggestionsPBF = [];
+  //   showSuggestionsPBF = false;
+  // };
 
   const formatTanggal = (isoDate) => {
     const date = new Date(isoDate);
@@ -547,7 +559,7 @@
               <TableBodyCell>
                 <Button
                   color="blue"
-                  class="!p-2"
+                  class="p-2!"
                   onclick={() => {
                     selectedBarangId = item.id_barang;
                     setStokObat();
@@ -609,7 +621,7 @@
                 <Button
                   color="blue"
                   pill={true}
-                  class="!p-2"
+                  class="p-2!"
                   onclick={() => {
                     selectedPBFId = item.id_pbf;
                     setStokObat();
@@ -693,69 +705,27 @@
       <hr />
       <Label class="space-y-2">
         <span class="text-gray-900">Nama Obat</span>
-        <div onfocusout={() => (showSuggestionsBarang = false)}>
-          <Input
-            bind:value={nama_barang}
-            type="text"
-            name="nama_barang"
-            placeholder="Paracetamol"
-            class="font-normal"
-            onkeydown={autocompleteBarang}
-            onfocus={() => {
-              if (nama_barang.length > 0) showSuggestionsBarang = true;
-            }}
-            required
-          />
-          {#if showSuggestionsBarang && suggestionsBarang.length > 0}
-            <div
-              class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
-            >
-              {#each suggestionsBarang as item}
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div
-                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onmousedown={() => selectSuggestionBarang(item)}
-                >
-                  {item.nama_barang}
-                </div>
-              {/each}
-            </div>
-          {/if}
-        </div>
+        <Input
+          bind:value={nama_barang}
+          data={suggestionsBarang}
+          type="text"
+          name="nama_barang"
+          placeholder="Paracetamol"
+          class="font-normal"
+          required
+        />
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
-        <div onfocusout={() => (showSuggestionsPBF = false)}>
-          <Input
-            bind:value={nama_pbf}
-            type="text"
-            name="nama_pbf"
-            placeholder="PT ABC"
-            class="font-normal"
-            onkeydown={autocompletePBF}
-            onfocus={() => {
-              if (nama_pbf.length > 0) showSuggestionsPBF = true;
-            }}
-            required
-          />
-          {#if showSuggestionsPBF && suggestionsPBF.length > 0}
-            <div
-              class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
-            >
-              {#each suggestionsPBF as item}
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div
-                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onmousedown={() => selectSuggestionPBF(item)}
-                >
-                  {item.nama_pbf}
-                </div>
-              {/each}
-            </div>
-          {/if}
-        </div>
+        <Input
+          bind:value={nama_pbf}
+          data={suggestionsPBF}
+          type="text"
+          name="nama_pbf"
+          placeholder="PT ABC"
+          class="font-normal"
+          required
+        />
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Nomor Batch</span>
@@ -764,6 +734,21 @@
           type="text"
           name="nomor_batch"
           placeholder="ABCDEF12345"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Tanggal Expired</span>
+        <Datepicker bind:value={tanggal_expired} required />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Jumlah Stok</span>
+        <Input
+          bind:value={jumlah_stok}
+          type="number"
+          name="jumlah_stok"
+          placeholder="50"
           class="font-normal"
           required
         />
@@ -795,21 +780,7 @@
           </div>
         </div>
       </Label>
-      <Label class="space-y-2">
-        <span class="text-gray-900">Tanggal Expired</span>
-        <Datepicker bind:value={tanggal_expired} required />
-      </Label>
-      <Label class="space-y-2">
-        <span class="text-gray-900">Jumlah Stok</span>
-        <Input
-          bind:value={jumlah_stok}
-          type="number"
-          name="jumlah_stok"
-          placeholder="50"
-          class="font-normal"
-          required
-        />
-      </Label>
+      <hr />
       <div class="flex flex-row justify-between space-x-4">
         <Button
           class="flex flex-1"
@@ -850,33 +821,28 @@
       <hr />
       <Label class="space-y-2">
         <span class="text-gray-900">Nama Obat</span>
-        <div onfocusout={() => (showSuggestionsBarang = false)}>
-          <Input
-            bind:value={nama_barang}
-            type="text"
-            name="nama_barang"
-            placeholder="Paracetamol"
-            class="font-normal"
-            onkeydown={autocompleteBarang}
-            onfocus={() => {
-              if (nama_barang.length > 0) showSuggestionsBarang = true;
-            }}
-            onfocusout={() => {
-              if (selectedBarangId != null && selectedPBFId != null) {
-                getExactItem(selectedBarangId, selectedPBFId);
-              } else {
-                getExactItem(nama_barang, nama_pbf);
-              }
-            }}
-            required
-          />
+        <Input
+          bind:value={nama_barang}
+          type="text"
+          name="nama_barang"
+          placeholder="Paracetamol"
+          class="font-normal"
+          data={suggestionsBarang}
+          onfocusout={() => {
+            if (selectedBarangId != null && selectedPBFId != null) {
+              getExactItem(selectedBarangId, selectedPBFId);
+            } else {
+              getExactItem(nama_barang, nama_pbf);
+            }
+          }}
+          required
+        />
+        <!-- <div onfocusout={() => (showSuggestionsBarang = false)}>          
           {#if showSuggestionsBarang && suggestionsBarang.length > 0}
             <div
               class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
             >
-              {#each suggestionsBarang as item}
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
+              {#each suggestionsBarang as item}                
                 <div
                   class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   onmousedown={() => selectSuggestionBarang(item)}
@@ -886,47 +852,26 @@
               {/each}
             </div>
           {/if}
-        </div>
+        </div> -->
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
-        <div onfocusout={() => (showSuggestionsPBF = false)}>
-          <Input
-            bind:value={nama_pbf}
-            type="text"
-            name="nama_pbf"
-            placeholder="PT ABC"
-            class="font-normal"
-            onkeydown={autocompletePBF}
-            onfocus={() => {
-              if (nama_pbf.length > 0) showSuggestionsPBF = true;
-            }}
-            onfocusout={() => {
-              if (selectedBarangId != null && selectedPBFId != null) {
-                getExactItem(selectedBarangId, selectedPBFId);
-              } else {
-                getExactItem(nama_barang, nama_pbf);
-              }
-            }}
-            required
-          />
-          {#if showSuggestionsPBF && suggestionsPBF.length > 0}
-            <div
-              class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
-            >
-              {#each suggestionsPBF as item}
-                <!-- svelte-ignore a11y_click_events_have_key_events -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div
-                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onmousedown={() => selectSuggestionPBF(item)}
-                >
-                  {item.nama_pbf}
-                </div>
-              {/each}
-            </div>
-          {/if}
-        </div>
+        <Input
+          bind:value={nama_pbf}
+          type="text"
+          name="nama_pbf"
+          placeholder="PT ABC"
+          class="font-normal"
+          data={suggestionsPBF}
+          onfocusout={() => {
+            if (selectedBarangId != null && selectedPBFId != null) {
+              getExactItem(selectedBarangId, selectedPBFId);
+            } else {
+              getExactItem(nama_barang, nama_pbf);
+            }
+          }}
+          required
+        />
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Nomor Batch</span>
@@ -935,6 +880,21 @@
           type="text"
           name="nomor_batch"
           placeholder="ABCDEF12345"
+          class="font-normal"
+          required
+        />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Tanggal Expired</span>
+        <Datepicker bind:value={tanggal_expired} required />
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Jumlah Stok</span>
+        <Input
+          bind:value={jumlah_stok}
+          type="number"
+          name="jumlah_stok"
+          placeholder="50"
           class="font-normal"
           required
         />
@@ -965,21 +925,6 @@
             <Checkbox bind:checked={isPercentage}>%</Checkbox>
           </div>
         </div>
-      </Label>
-      <Label class="space-y-2">
-        <span class="text-gray-900">Tanggal Expired</span>
-        <Datepicker bind:value={tanggal_expired} required />
-      </Label>
-      <Label class="space-y-2">
-        <span class="text-gray-900">Jumlah Stok</span>
-        <Input
-          bind:value={jumlah_stok}
-          type="number"
-          name="jumlah_stok"
-          placeholder="50"
-          class="font-normal"
-          required
-        />
       </Label>
       <hr />
       <div class="flex flex-row justify-between space-x-4">
@@ -1017,34 +962,38 @@
         <AdjustmentsHorizontalSolid class="w-8 h-8" />
       </div>
       <Dropdown triggeredBy="#appSettings">
-        <div slot="header" class="text-center py-2 font-bold">Pengaturan</div>
-        <DropdownItem
-          class="flex space-x-4 rtl:space-x-reverse"
-          onclick={() => {
-            resetConfirmation = true;
-            resetPBFAlert = true;
-          }}
-        >
-          Reset PBF
-        </DropdownItem>
-        <DropdownItem
-          class="flex space-x-4 rtl:space-x-reverse"
-          onclick={() => {
-            resetConfirmation = true;
-            resetBarangAlert = true;
-          }}
-        >
-          Reset Data Obat
-        </DropdownItem>
-        <DropdownItem
-          class="flex space-x-4 rtl:space-x-reverse"
-          onclick={() => {
-            resetConfirmation = true;
-            resetStokAlert = true;
-          }}
-        >
-          Reset Stok Obat
-        </DropdownItem>
+        <DropdownHeader>
+          <span class="text-center py-2 font-bold">Pengaturan</span>
+        </DropdownHeader>
+        <DropdownGroup>
+          <DropdownItem
+            class="flex space-x-4 rtl:space-x-reverse"
+            onclick={() => {
+              resetConfirmation = true;
+              resetPBFAlert = true;
+            }}
+          >
+            Reset PBF
+          </DropdownItem>
+          <DropdownItem
+            class="flex space-x-4 rtl:space-x-reverse"
+            onclick={() => {
+              resetConfirmation = true;
+              resetBarangAlert = true;
+            }}
+          >
+            Reset Data Obat
+          </DropdownItem>
+          <DropdownItem
+            class="flex space-x-4 rtl:space-x-reverse"
+            onclick={() => {
+              resetConfirmation = true;
+              resetStokAlert = true;
+            }}
+          >
+            Reset Stok Obat
+          </DropdownItem>
+        </DropdownGroup>
       </Dropdown>
       <div
         id="itemExpNotification"
@@ -1068,47 +1017,56 @@
           <BellSolid class="w-8 h-8" />
         {/if}
         <Dropdown triggeredBy="#itemExpNotification">
-          <div slot="header" class="text-center py-2 font-bold">Notifikasi</div>
-          {#each expw_items_stok
-            .filter((item) => item.tanggal_expired)
-            .slice(0, 3) as item}
+          <DropdownHeader>
+            <span class="text-center py-2 font-bold">Notifikasi</span>
+          </DropdownHeader>
+          {#if expw_items_stok.length == 0}
+            <DropdownGroup>
+              <DropdownItem>Tidak ada notifikasi</DropdownItem>
+            </DropdownGroup>
+          {:else}
+            <DropdownGroup>
+              {#each expw_items_stok
+                .filter((item) => item.tanggal_expired)
+                .slice(0, 3) as item}
+                <DropdownItem
+                  class="flex space-x-4 rtl:space-x-reverse"
+                  onclick={() => {
+                    isStokObat = false;
+                    isTglExp = true;
+                    isStockAlert = false;
+                    searchStockAlert = item.nama_barang;
+                  }}
+                >
+                  <div class="flex flex-col space-y-2">
+                    <div class="flex font-bold">{item.nama_barang}</div>
+                    <div class="text-sm mb-1.5">
+                      Tgl Expired: <div
+                        class="text-sm font-bold text-primary-600"
+                      >
+                        {formatTanggal(item.tanggal_expired)}
+                      </div>
+                    </div>
+                  </div>
+                </DropdownItem>
+              {/each}
+            </DropdownGroup>
             <DropdownItem
-              class="flex space-x-4 rtl:space-x-reverse"
               onclick={() => {
                 isPBF = false;
                 isDataObat = false;
                 isStokObat = false;
                 isTglExp = true;
                 isStockAlert = false;
-                searchStockAlert = item.nama_barang;
               }}
+              class="block py-2 -my-1 text-sm font-medium text-center text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white"
             >
-              <div class="flex flex-col space-y-2">
-                <div class="flex font-bold">{item.nama_barang}</div>
-                <div class="text-sm mb-1.5">
-                  Tgl Expired: <div class="text-sm font-bold text-primary-600">
-                    {formatTanggal(item.tanggal_expired)}
-                  </div>
-                </div>
+              <div class="inline-flex items-center">
+                <EyeSolid class="me-2 w-4 h-4 text-gray-500" />
+                Lihat semua
               </div>
             </DropdownItem>
-          {/each}
-          <DropdownItem
-            slot="footer"
-            onclick={() => {
-              isPBF = false;
-              isDataObat = false;
-              isStokObat = false;
-              isTglExp = true;
-              isStockAlert = false;
-            }}
-            class="block py-2 -my-1 text-sm font-medium text-center text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white"
-          >
-            <div class="inline-flex items-center">
-              <EyeSolid class="me-2 w-4 h-4 text-gray-500" />
-              Lihat semua
-            </div>
-          </DropdownItem>
+          {/if}
         </Dropdown>
       </div>
     </div>
@@ -1147,7 +1105,7 @@
           </Button>
         </div>
 
-        <Table innerDivClass="left-0 my-2" hoverable={true}>
+        <Table innerDivClass="left-0 my-2" hoverable={true} color="custom">
           <TableHead>
             <TableHeadCell>No</TableHeadCell>
             <TableHeadCell>Nama Obat</TableHeadCell>
@@ -1225,9 +1183,9 @@
                               <TableBodyCell>
                                 <div class="flex space-x-4">
                                   <Button
-                                    color="yellow"
+                                    color="primary"
                                     pill={true}
-                                    class="!p-2"
+                                    class="p-2!"
                                     onclick={() => {
                                       selectedStokId = item_detail.id_stok;
                                       selectedBarangId = item.id_barang;
@@ -1251,7 +1209,7 @@
                                   <Button
                                     color="red"
                                     pill={true}
-                                    class="!p-2"
+                                    class="p-2!"
                                     onclick={() => {
                                       selectedStokId = item_detail.id_stok;
                                       selectedBarang = item.nama_barang;
@@ -1289,14 +1247,15 @@
           </p>
         </div>
       {:else}
-        <input
+        <Input
           type="text"
           class="mb-4 border border-gray-400 p-2 rounded w-full flex-1"
           placeholder="Cari data stok..."
           bind:value={searchStockAlert}
+          clearable
         />
 
-        <Table innerDivClass="left-0 my-2" hoverable={true}>
+        <Table innerDivClass="left-0 my-2" hoverable={true} color="custom">
           <TableHead>
             <TableHeadCell>No</TableHeadCell>
             <TableHeadCell>Nama Obat</TableHeadCell>
@@ -1341,6 +1300,6 @@
 
 <style lang="postcss">
   :global(html) {
-    background-color: theme(colors.gray.100);
+    background-color: var(--color-gray-100);
   }
 </style>
