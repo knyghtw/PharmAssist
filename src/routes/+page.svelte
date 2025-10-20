@@ -189,12 +189,12 @@
   async function getStokDetail(id_barang, id_pbf) {
     items_stok_detail = await stokService.getDetails(id_barang, id_pbf);
   }
-  
+
   async function getExactItemByName(nama_barang, nama_pbf) {
     const exactitem = await stokService.getExactItemByName(
       nama_barang,
       nama_pbf
-    );    
+    );
     if (exactitem.length == 1) {
       harga_beli_per_satuan = exactitem[0].harga_beli_per_satuan;
       harga_jual_per_satuan = exactitem[0].harga_jual_per_satuan;
@@ -789,7 +789,7 @@
           placeholder="Paracetamol"
           class="font-normal"
           data={suggestionsBarang}
-          onfocusout={() => {            
+          onfocusout={() => {
             getExactItemByName(nama_barang.trimEnd(), nama_pbf.trimEnd());
           }}
           required
@@ -804,7 +804,7 @@
           placeholder="PT ABC"
           class="font-normal"
           data={suggestionsPBF}
-          onfocusout={() => {            
+          onfocusout={() => {
             getExactItemByName(nama_barang.trimEnd(), nama_pbf.trimEnd());
           }}
           required
@@ -900,11 +900,11 @@
       </div>
       <Dropdown triggeredBy="#appSettings">
         <DropdownHeader>
-          <span class="text-center py-2 font-bold">Pengaturan</span>
+          <span class="font-bold">Pengaturan</span>
         </DropdownHeader>
-        <DropdownGroup>
+        <DropdownGroup class="text-left">
           <DropdownItem
-            class="flex space-x-4 rtl:space-x-reverse"
+            class="hover:cursor-pointer w-full text-left"
             onclick={() => {
               resetConfirmation = true;
               resetPBFAlert = true;
@@ -913,7 +913,7 @@
             Reset PBF
           </DropdownItem>
           <DropdownItem
-            class="flex space-x-4 rtl:space-x-reverse"
+            class="hover:cursor-pointer w-full text-left"
             onclick={() => {
               resetConfirmation = true;
               resetBarangAlert = true;
@@ -922,7 +922,7 @@
             Reset Data Obat
           </DropdownItem>
           <DropdownItem
-            class="flex space-x-4 rtl:space-x-reverse"
+            class="hover:cursor-pointer w-full text-left"
             onclick={() => {
               resetConfirmation = true;
               resetStokAlert = true;
@@ -967,42 +967,37 @@
                 .filter((item) => item.tanggal_expired)
                 .slice(0, 3) as item}
                 <DropdownItem
-                  class="flex space-x-4 rtl:space-x-reverse"
                   onclick={() => {
                     isStokObat = false;
                     isTglExp = true;
                     isStockAlert = false;
                     searchStockAlert = item.nama_barang;
                   }}
+                  class="hover:cursor-pointer text-left"
                 >
-                  <div class="flex flex-col space-y-2">
-                    <div class="flex font-bold">{item.nama_barang}</div>
-                    <div class="text-sm mb-1.5">
-                      Tgl Expired: <div
-                        class="text-sm font-bold text-primary-600"
-                      >
-                        {formatTanggal(item.tanggal_expired)}
-                      </div>
+                  <div class="font-bold">{item.nama_barang}</div>
+                  <div class="text-sm mb-1.5">
+                    Tgl Expired: <div
+                      class="text-sm font-bold text-primary-600"
+                    >
+                      {formatTanggal(item.tanggal_expired)}
                     </div>
                   </div>
                 </DropdownItem>
               {/each}
+              <DropdownDivider />
+              <DropdownItem
+                onclick={() => {
+                  isPBF = false;
+                  isDataObat = false;
+                  isStokObat = false;
+                  isTglExp = true;
+                  isStockAlert = false;
+                }}
+                class="text-center w-full h-full hover:cursor-pointer"                
+                >Lihat semua</DropdownItem
+              >
             </DropdownGroup>
-            <DropdownItem
-              onclick={() => {
-                isPBF = false;
-                isDataObat = false;
-                isStokObat = false;
-                isTglExp = true;
-                isStockAlert = false;
-              }}
-              class="block py-2 -my-1 text-sm font-medium text-center text-gray-900 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white"
-            >
-              <div class="inline-flex items-center">
-                <EyeSolid class="me-2 w-4 h-4 text-gray-500" />
-                Lihat semua
-              </div>
-            </DropdownItem>
           {/if}
         </Dropdown>
       </div>
@@ -1192,7 +1187,7 @@
           clearable
         />
 
-        <Table innerDivClass="left-0 my-2" hoverable={true} color="custom">
+        <Table innerDivClass="left-0 my-2" hoverable={true} color="orange" >
           <TableHead>
             <TableHeadCell>No</TableHeadCell>
             <TableHeadCell>Nama Obat</TableHeadCell>
