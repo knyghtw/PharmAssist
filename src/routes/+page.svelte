@@ -172,7 +172,6 @@
     for (let i = 0; i < items_barang.length; i++) {
       suggestionsBarang.push(items_barang[i].nama_barang);
     }
-    console.log(suggestionsBarang);
   }
 
   async function getPBF() {
@@ -180,8 +179,7 @@
     suggestionsPBF = [];
     for (let i = 0; i < items_pbf.length; i++) {
       suggestionsPBF.push(items_pbf[i].nama_pbf);
-    }    
-    console.log(suggestionsPBF);
+    }
   }
 
   async function getStok() {
@@ -191,9 +189,12 @@
   async function getStokDetail(id_barang, id_pbf) {
     items_stok_detail = await stokService.getDetails(id_barang, id_pbf);
   }
-
-  async function getExactItem(id_barang, id_pbf) {
-    const exactitem = await stokService.getExactItem(id_barang, id_pbf);
+  
+  async function getExactItemByName(nama_barang, nama_pbf) {
+    const exactitem = await stokService.getExactItemByName(
+      nama_barang,
+      nama_pbf
+    );    
     if (exactitem.length == 1) {
       harga_beli_per_satuan = exactitem[0].harga_beli_per_satuan;
       harga_jual_per_satuan = exactitem[0].harga_jual_per_satuan;
@@ -266,6 +267,10 @@
           harga_beli_per_satuan + harga_beli_per_satuan * (percentage / 100)
         );
       }
+      let trimmed_barang = nama_barang.trimEnd();
+      nama_barang = trimmed_barang;
+      let trimmed_pbf = nama_pbf.trimEnd();
+      nama_pbf = trimmed_pbf;
       const result = await stokService.createItem(
         selectedBarangId,
         selectedPBFId,
@@ -388,50 +393,6 @@
       errorMessage = error;
     }
   }
-
-  // async function autocompleteBarang() {
-  //   if (nama_barang.length <= 1) {
-  //     suggestionsBarang = [];
-  //     showSuggestionsBarang = false;
-  //     return;
-  //   }
-
-  //   const filteredItems = items_barang.filter((item) =>
-  //     item.nama_barang.includes(event.target.value.toUpperCase())
-  //   );
-
-  //   suggestionsBarang = filteredItems.slice(0, 5);
-  //   showSuggestionsBarang = true;
-  // }
-
-  // async function autocompletePBF() {
-  //   if (nama_pbf.length <= 1) {
-  //     suggestionsPBF = [];
-  //     showSuggestionsPBF = false;
-  //     return;
-  //   }
-
-  //   const filteredItems = items_pbf.filter((item) =>
-  //     item.nama_pbf.includes(event.target.value.toUpperCase())
-  //   );
-
-  //   suggestionsPBF = filteredItems.slice(0, 5);
-  //   showSuggestionsPBF = true;
-  // }
-
-  // const selectSuggestionBarang = (selectedItem) => {
-  //   nama_barang = selectedItem.nama_barang;
-  //   selectedBarangId = selectedItem.id_barang;
-  //   suggestionsBarang = [];
-  //   showSuggestionsBarang = false;
-  // };
-
-  // const selectSuggestionPBF = (selectedItem) => {
-  //   nama_pbf = selectedItem.nama_pbf;
-  //   selectedPBFId = selectedItem.id_pbf;
-  //   suggestionsPBF = [];
-  //   showSuggestionsPBF = false;
-  // };
 
   const formatTanggal = (isoDate) => {
     const date = new Date(isoDate);
@@ -828,31 +789,11 @@
           placeholder="Paracetamol"
           class="font-normal"
           data={suggestionsBarang}
-          onfocusout={() => {
-            if (selectedBarangId != null && selectedPBFId != null) {
-              getExactItem(selectedBarangId, selectedPBFId);
-            } else {
-              getExactItem(nama_barang, nama_pbf);
-            }
+          onfocusout={() => {            
+            getExactItemByName(nama_barang.trimEnd(), nama_pbf.trimEnd());
           }}
           required
         />
-        <!-- <div onfocusout={() => (showSuggestionsBarang = false)}>          
-          {#if showSuggestionsBarang && suggestionsBarang.length > 0}
-            <div
-              class="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1"
-            >
-              {#each suggestionsBarang as item}                
-                <div
-                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onmousedown={() => selectSuggestionBarang(item)}
-                >
-                  {item.nama_barang}
-                </div>
-              {/each}
-            </div>
-          {/if}
-        </div> -->
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
@@ -863,12 +804,8 @@
           placeholder="PT ABC"
           class="font-normal"
           data={suggestionsPBF}
-          onfocusout={() => {
-            if (selectedBarangId != null && selectedPBFId != null) {
-              getExactItem(selectedBarangId, selectedPBFId);
-            } else {
-              getExactItem(nama_barang, nama_pbf);
-            }
+          onfocusout={() => {            
+            getExactItemByName(nama_barang.trimEnd(), nama_pbf.trimEnd());
           }}
           required
         />

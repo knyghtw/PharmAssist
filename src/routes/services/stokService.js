@@ -21,24 +21,16 @@ export default class stokService {
       console.error("Error fetching items:", error);
       throw error;
     }
-  }
+  }  
 
-  static async getExactItem(id_barang, id_pbf, nama_barang, nama_pbf) {
+  static async getExactItemByName(nama_barang, nama_pbf) {
     try {
       const db = await this.getDB();
-      if (id_barang != null && id_pbf != null) {
-        const result = await db.select(
-          "SELECT b.id_barang, b.nama_barang, p.id_pbf, p.nama_pbf, s.harga_beli_per_satuan, s.harga_jual_per_satuan FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf WHERE b.id_barang = ? AND p.id_pbf = ? GROUP BY b.id_barang, p.id_pbf, b.nama_barang, p.nama_pbf LIMIT 1",
-          [id_barang, id_pbf]
-        );
-        return result;
-      } else {
-        const result = await db.select(
-          "SELECT b.id_barang, b.nama_barang, p.id_pbf, p.nama_pbf, s.harga_beli_per_satuan, s.harga_jual_per_satuan FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf WHERE b.nama_barang = ? AND p.nama_pbf = ? GROUP BY b.id_barang, p.id_pbf, b.nama_barang, p.nama_pbf LIMIT 1",
-          [nama_barang, nama_pbf]
-        );
-        return result;
-      }
+      const result = await db.select(
+        "SELECT b.id_barang, b.nama_barang, p.id_pbf, p.nama_pbf, s.harga_beli_per_satuan, s.harga_jual_per_satuan FROM stok_obat s JOIN barang b ON s.id_barang = b.id_barang JOIN pbf p ON s.id_pbf = p.id_pbf WHERE b.nama_barang = ? AND p.nama_pbf = ? GROUP BY b.id_barang, p.id_pbf, b.nama_barang, p.nama_pbf LIMIT 1",
+        [nama_barang, nama_pbf]
+      );
+      return result;
     } catch (error) {
       console.error("Error fetching items:", error);
       throw error;
