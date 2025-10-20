@@ -673,6 +673,12 @@
           name="nama_barang"
           placeholder="Paracetamol"
           class="font-normal"
+          onfocusout={() => {
+            let normalizebrg = nama_barang.trimEnd();
+            let normalizepbf = nama_pbf.trimEnd();
+            nama_barang = normalizebrg;
+            nama_pbf = normalizepbf;
+          }}
           required
         />
       </Label>
@@ -685,6 +691,12 @@
           name="nama_pbf"
           placeholder="PT ABC"
           class="font-normal"
+          onfocusout={() => {
+            let normalizebrg = nama_barang.trimEnd();
+            let normalizepbf = nama_pbf.trimEnd();
+            nama_barang = normalizebrg;
+            nama_pbf = normalizepbf;
+          }}
           required
         />
       </Label>
@@ -790,7 +802,11 @@
           class="font-normal"
           data={suggestionsBarang}
           onfocusout={() => {
-            getExactItemByName(nama_barang.trimEnd(), nama_pbf.trimEnd());
+            let normalizebrg = nama_barang.trimEnd();
+            let normalizepbf = nama_pbf.trimEnd();
+            nama_barang = normalizebrg;
+            nama_pbf = normalizepbf;
+            getExactItemByName(normalizebrg, normalizepbf);
           }}
           required
         />
@@ -805,7 +821,11 @@
           class="font-normal"
           data={suggestionsPBF}
           onfocusout={() => {
-            getExactItemByName(nama_barang.trimEnd(), nama_pbf.trimEnd());
+            let normalizebrg = nama_barang.trimEnd();
+            let normalizepbf = nama_pbf.trimEnd();
+            nama_barang = normalizebrg;
+            nama_pbf = normalizepbf;
+            getExactItemByName(normalizebrg, normalizepbf);
           }}
           required
         />
@@ -994,7 +1014,7 @@
                   isTglExp = true;
                   isStockAlert = false;
                 }}
-                class="text-center w-full h-full hover:cursor-pointer"                
+                class="text-center w-full h-full hover:cursor-pointer"
                 >Lihat semua</DropdownItem
               >
             </DropdownGroup>
@@ -1187,7 +1207,7 @@
           clearable
         />
 
-        <Table innerDivClass="left-0 my-2" hoverable={true} color="orange" >
+        <Table innerDivClass="left-0 my-2" hoverable={true} color="orange">
           <TableHead>
             <TableHeadCell>No</TableHeadCell>
             <TableHeadCell>Nama Obat</TableHeadCell>
