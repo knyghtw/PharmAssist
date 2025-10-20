@@ -21,9 +21,26 @@ PharmAssist merupakan aplikasi desktop yang dapat mencatat serta mengelola stok 
 *File installer* dapat diunduh pada halaman [Releases](https://github.com/knyghtw/PharmAssist/releases)
 
 ## Cara Penggunaan
+### Bagian I: Instalasi
+1. Unduh *file installer* pada halaman [Releases](https://github.com/knyghtw/PharmAssist/releases)
+2. Buka *file installer* untuk melakukan instalasi aplikasi.
+
+### Bagian II: Mencatat Data Stok Obat Baru
 1. Buka aplikasi `PharmAssist`.
-2. Tambahkan data PBF dan barang sebelum mencatat stok.
-3. Klik pada *tab* stok obat untuk memasukkan stok obat baru.
+2. Klik tombol tambah data.
+3. Isi semua kolom yang tersedia. Centang kotak persen di sebelah kolom Harga Jual jika ingin menghitung harga jual berdasarkan persentase dari harga beli.
+4. Klik simpan
+
+### Bagian III: Merubah Data Stok Obat
+1. Klik salah satu item pada tabel stok obat.
+2. Tentukan batch mana yang ingin dirubah, lalu klik tombol edit di sebelah kanan.
+3. Ubah data yang terdapat pada form.
+4. Klik ubah.
+
+### Bagian IV: Merubah Data Stok Obat
+1. Klik salah satu item pada tabel stok obat.
+2. Tentukan batch mana yang ingin dirubah, lalu klik tombol edit di sebelah kanan.
+3. Klik hapus.
 
 ## Informasi untuk Pengembang
 ### Rekomendasi Setup IDE
