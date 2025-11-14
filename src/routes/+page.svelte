@@ -23,6 +23,7 @@
     Select,
     Checkbox,
     DropdownDivider,
+    Helper,
   } from "flowbite-svelte";
 
   import {
@@ -71,6 +72,7 @@
   let isNewPBF = $state(false);
   let isPercentage = $state(false);
   let isExtended = $state(false);
+  let isBtnDisabled = $state(true);
   let deleteConfirmation = $state(false);
   let resetConfirmation = $state(false);
   let resetPBFAlert = $state(false);
@@ -89,6 +91,13 @@
   let newNotification = $state(false);
   let hasClickedNotification = $state(false);
   let showDetail = $state(false);
+  let validNamaBarang = $state(true);
+  let validNamaPBF = $state(true);
+  let validNoBatch = $state(true);
+  let validHargaBeli = $state(true);
+  let validHargaJual = $state(true);
+  let validTglExp = $state(true);
+  let validStok = $state(true);
 
   let searchTermBarang = $state("");
   let searchTermStok = $state("");
@@ -102,6 +111,13 @@
   let selectedStokId = $state(0);
   let errorMessage = $state("");
   let openRow = $state(-1);
+  let namaBarangCheck = $state("default");
+  let namaPBFCheck = $state("default");
+  let noBatchCheck = $state("default");
+  let hargaBeliCheck = $state("default");
+  let hargaJualCheck = $state("default");
+  let tglExpCheck = $state("default");
+  let stokCheck = $state("default");
 
   let items_barang = $state([
     {
@@ -259,6 +275,97 @@
     isPercentage = false;
   }
 
+  function checkInput(input_name) {
+    switch (input_name) {
+      case "nama_barang":
+        if (!nama_barang) {
+          validNamaBarang = false;
+          namaBarangCheck = "red";
+        } else {
+          validNamaBarang = true;
+          namaBarangCheck = "default";
+        }
+        break;
+      case "nama_pbf":
+        if (!nama_pbf) {
+          validNamaPBF = false;
+          namaPBFCheck = "red";
+        } else {
+          validNamaPBF = true;
+          namaPBFCheck = "default";
+        }
+        break;
+      case "nomor_batch":
+        if (!nomor_batch) {
+          validNoBatch = false;
+          noBatchCheck = "red";
+        } else {
+          validNoBatch = true;
+          noBatchCheck = "default";
+        }
+        break;
+      case "harga_beli":
+        if (!harga_beli_per_satuan || harga_beli_per_satuan < 1) {
+          validHargaBeli = false;
+          hargaBeliCheck = "red";
+        } else {
+          validHargaBeli = true;
+          hargaBeliCheck = "default";
+        }
+        break;
+      case "harga_jual":
+        if (
+          !harga_jual_per_satuan ||
+          harga_jual_per_satuan < 1 ||
+          (harga_beli_per_satuan > harga_jual_per_satuan && !isPercentage)
+        ) {
+          validHargaJual = false;
+          hargaJualCheck = "red";
+        } else {
+          validHargaJual = true;
+          hargaJualCheck = "default";
+        }
+        break;
+      case "tgl_exp":
+        if (!tanggal_expired) {
+          validTglExp = false;
+          tglExpCheck = "red";
+        } else {
+          validTglExp = true;
+          tglExpCheck = "default";
+        }
+        break;
+      case "jumlah_stok":
+        if (!jumlah_stok || jumlah_stok < 1) {
+          validStok = false;
+          stokCheck = "red";
+        } else {
+          validStok = true;
+          stokCheck = "default";
+        }
+        break;
+      default:
+        break;
+    }
+    if (
+      nama_barang &&
+      nama_pbf &&
+      nomor_batch &&
+      harga_beli_per_satuan &&
+      harga_beli_per_satuan > 1 &&
+      harga_jual_per_satuan &&
+      harga_jual_per_satuan > 1 &&
+      ((harga_beli_per_satuan < harga_jual_per_satuan && !isPercentage) ||
+        (harga_beli_per_satuan > harga_jual_per_satuan && isPercentage)) &&
+      tanggal_expired &&
+      jumlah_stok > 1
+    ) {
+      isBtnDisabled = false;
+    } else {
+      isBtnDisabled = true;
+    }
+  }
+
   async function setStokObat() {
     try {
       if (isPercentage) {
@@ -290,6 +397,7 @@
         addDataAction = true;
         await clearInput();
         await getItems();
+        isBtnDisabled = true;
       } else if (result.message == "confirm_barang") {
         items_barang = result.data;
         requireBarangConfirmation = true;
@@ -339,6 +447,7 @@
       await getItems();
       await getStokDetail(selectedBarangId, selectedPBFId);
       await clearInput();
+      isBtnDisabled = true;
     } catch (error) {
       actionFailed = true;
       errorMessage = error;
@@ -642,7 +751,7 @@
       >
     </div>
   </Modal>
-  <Modal bind:open={clickEditStokModal} autoclose={false} outsideclose>
+  <Modal bind:open={clickEditStokModal} autoclose={false} outsideclose={false}>
     <form
       class="flex flex-col space-y-4"
       autocomplete="off"
@@ -755,16 +864,8 @@
       </Label>
       <hr />
       <div class="flex flex-row justify-between space-x-4">
-        <Button
-          class="flex flex-1"
-          type="submit"
-          disabled={!selectedBarangId ||
-            !selectedPBFId ||
-            !nomor_batch ||
-            !harga_beli_per_satuan ||
-            !harga_jual_per_satuan ||
-            !tanggal_expired ||
-            !jumlah_stok}>Ubah</Button
+        <Button class="flex flex-1" type="submit" disabled={isBtnDisabled}
+          >Ubah</Button
         >
         <Button
           class="flex flex-1"
@@ -779,7 +880,11 @@
       </div>
     </form>
   </Modal>
-  <Modal bind:open={clickCreateStokModal} autoclose={false} outsideclose>
+  <Modal
+    bind:open={clickCreateStokModal}
+    autoclose={false}
+    outsideclose={false}
+  >
     <form
       class="flex flex-col space-y-4"
       autocomplete="off"
@@ -801,15 +906,22 @@
           placeholder="Paracetamol"
           class="font-normal"
           data={suggestionsBarang}
+          bind:color={namaBarangCheck}
           onfocusout={() => {
-            let normalizebrg = nama_barang.trimEnd();
-            let normalizepbf = nama_pbf.trimEnd();
-            nama_barang = normalizebrg;
-            nama_pbf = normalizepbf;
-            getExactItemByName(normalizebrg, normalizepbf);
+            if (nama_barang) {
+              let normalizebrg = nama_barang.trimEnd();
+              let normalizepbf = nama_pbf.trimEnd();
+              nama_barang = normalizebrg;
+              nama_pbf = normalizepbf;
+              getExactItemByName(normalizebrg, normalizepbf);
+            }
+            checkInput("nama_barang");
           }}
           required
         />
+        {#if !validNamaBarang}
+          <Helper class="mt-2" color="red">Nama barang wajib diisi.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
@@ -820,15 +932,22 @@
           placeholder="PT ABC"
           class="font-normal"
           data={suggestionsPBF}
+          bind:color={namaPBFCheck}
           onfocusout={() => {
-            let normalizebrg = nama_barang.trimEnd();
-            let normalizepbf = nama_pbf.trimEnd();
-            nama_barang = normalizebrg;
-            nama_pbf = normalizepbf;
-            getExactItemByName(normalizebrg, normalizepbf);
+            if (nama_pbf) {
+              let normalizebrg = nama_barang.trimEnd();
+              let normalizepbf = nama_pbf.trimEnd();
+              nama_barang = normalizebrg;
+              nama_pbf = normalizepbf;
+              getExactItemByName(normalizebrg, normalizepbf);
+            }
+            checkInput("nama_pbf");
           }}
           required
         />
+        {#if !validNamaPBF}
+          <Helper class="mt-2" color="red">Nama PBF wajib diisi.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Nomor Batch</span>
@@ -838,12 +957,29 @@
           name="nomor_batch"
           placeholder="ABCDEF12345"
           class="font-normal"
+          bind:color={noBatchCheck}
+          onfocusout={() => {
+            checkInput("nomor_batch");
+          }}
           required
         />
+        {#if !validNoBatch}
+          <Helper class="mt-2" color="red">Nomor batch wajib diisi.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Tanggal Expired</span>
-        <Datepicker bind:value={tanggal_expired} required />
+        <Datepicker
+          bind:value={tanggal_expired}
+          bind:color={tglExpCheck}
+          onfocusout={() => {
+            checkInput("tgl_exp");
+          }}
+          required
+        />
+        {#if !validTglExp}
+          <Helper class="mt-2" color="red">Tanggal expired wajib diisi.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Jumlah Stok</span>
@@ -853,8 +989,17 @@
           name="jumlah_stok"
           placeholder="50"
           class="font-normal"
+          bind:color={stokCheck}
+          onfocusout={() => {
+            checkInput("jumlah_stok");
+          }}
           required
         />
+        {#if !validStok}
+          <Helper class="mt-2" color="red">Jumlah stok wajib diisi.</Helper>
+        {:else if !validStok && jumlah_stok < 1}
+          <Helper class="mt-2" color="red">Jumlah stok tidak valid.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Beli</span>
@@ -864,8 +1009,17 @@
           name="harga_beli_per_satuan"
           placeholder="10000"
           class="font-normal"
+          bind:color={hargaBeliCheck}
+          onfocusout={() => {
+            checkInput("harga_beli");
+          }}
           required
         />
+        {#if !validHargaBeli && !harga_beli_per_satuan}
+          <Helper class="mt-2" color="red">Harga beli wajib diisi.</Helper>
+        {:else if !validHargaBeli && harga_beli_per_satuan < 1}
+          <Helper class="mt-2" color="red">Harga beli tidak valid.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Jual</span>
@@ -876,25 +1030,35 @@
             name="harga_jual_per_satuan"
             placeholder="11000"
             class="font-normal flex-1"
+            bind:color={hargaJualCheck}
+            onfocusout={() => {
+              checkInput("harga_jual");
+            }}
             required
           />
           <div class="flex flex-none">
-            <Checkbox bind:checked={isPercentage}>%</Checkbox>
+            <Checkbox
+              bind:checked={isPercentage}
+              onclick={() => {
+                checkInput();
+              }}>%</Checkbox
+            >
           </div>
         </div>
+        {#if !validHargaJual && !harga_jual_per_satuan}
+          <Helper class="mt-2" color="red">Harga jual wajib diisi.</Helper>
+        {:else if !validHargaJual && harga_jual_per_satuan < 1}
+          <Helper class="mt-2" color="red">Harga jual tidak valid.</Helper>
+        {:else if !validHargaJual && harga_beli_per_satuan > harga_jual_per_satuan && !isPercentage}
+          <Helper class="mt-2" color="red"
+            >Harga jual tidak boleh lebih kecil dari harga beli.</Helper
+          >
+        {/if}
       </Label>
       <hr />
       <div class="flex flex-row justify-between space-x-4">
-        <Button
-          class="flex flex-1"
-          type="submit"
-          disabled={!nama_barang ||
-            !nama_pbf ||
-            !nomor_batch ||
-            !harga_beli_per_satuan ||
-            !harga_jual_per_satuan ||
-            !tanggal_expired ||
-            !jumlah_stok}>Simpan</Button
+        <Button class="flex flex-1" type="submit" disabled={isBtnDisabled}
+          >Simpan</Button
         >
         <Button
           class="flex flex-1"
