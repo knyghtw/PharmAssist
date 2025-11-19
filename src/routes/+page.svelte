@@ -317,7 +317,8 @@
         if (
           !harga_jual_per_satuan ||
           harga_jual_per_satuan < 1 ||
-          (harga_beli_per_satuan > harga_jual_per_satuan && !isPercentage)
+          (harga_beli_per_satuan > harga_jual_per_satuan && !isPercentage) ||
+          harga_jual_per_satuan > 100 && isPercentage
         ) {
           validHargaJual = false;
           hargaJualCheck = "red";
@@ -352,13 +353,13 @@
       nama_pbf &&
       nomor_batch &&
       harga_beli_per_satuan &&
-      harga_beli_per_satuan > 1 &&
+      +harga_beli_per_satuan > 1 &&
       harga_jual_per_satuan &&
-      harga_jual_per_satuan > 1 &&
-      ((harga_beli_per_satuan < harga_jual_per_satuan && !isPercentage) ||
-        (harga_beli_per_satuan > harga_jual_per_satuan && isPercentage)) &&
+      +harga_jual_per_satuan > 1 &&
+      ((+harga_beli_per_satuan < +harga_jual_per_satuan && !isPercentage) ||
+        (+harga_beli_per_satuan > +harga_jual_per_satuan && isPercentage)) &&
       tanggal_expired &&
-      jumlah_stok > 1
+      +jumlah_stok > 1
     ) {
       isBtnDisabled = false;
     } else {
@@ -915,6 +916,8 @@
               nama_pbf = normalizepbf;
               getExactItemByName(normalizebrg, normalizepbf);
             }
+          }}
+          oninput={() => {
             checkInput("nama_barang");
           }}
           required
@@ -941,6 +944,8 @@
               nama_pbf = normalizepbf;
               getExactItemByName(normalizebrg, normalizepbf);
             }
+          }}
+          oninput={() => {
             checkInput("nama_pbf");
           }}
           required
@@ -958,7 +963,7 @@
           placeholder="ABCDEF12345"
           class="font-normal"
           bind:color={noBatchCheck}
-          onfocusout={() => {
+          oninput={() => {
             checkInput("nomor_batch");
           }}
           required
@@ -972,7 +977,7 @@
         <Datepicker
           bind:value={tanggal_expired}
           bind:color={tglExpCheck}
-          onfocusout={() => {
+          oninput={() => {
             checkInput("tgl_exp");
           }}
           required
@@ -990,7 +995,7 @@
           placeholder="50"
           class="font-normal"
           bind:color={stokCheck}
-          onfocusout={() => {
+          oninput={() => {
             checkInput("jumlah_stok");
           }}
           required
@@ -1010,7 +1015,7 @@
           placeholder="10000"
           class="font-normal"
           bind:color={hargaBeliCheck}
-          onfocusout={() => {
+          oninput={() => {
             checkInput("harga_beli");
           }}
           required
@@ -1031,7 +1036,7 @@
             placeholder="11000"
             class="font-normal flex-1"
             bind:color={hargaJualCheck}
-            onfocusout={() => {
+            oninput={() => {
               checkInput("harga_jual");
             }}
             required
@@ -1039,8 +1044,8 @@
           <div class="flex flex-none">
             <Checkbox
               bind:checked={isPercentage}
-              onclick={() => {
-                checkInput();
+              onchange={() => {
+                checkInput("harga_jual");
               }}>%</Checkbox
             >
           </div>
@@ -1052,6 +1057,10 @@
         {:else if !validHargaJual && harga_beli_per_satuan > harga_jual_per_satuan && !isPercentage}
           <Helper class="mt-2" color="red"
             >Harga jual tidak boleh lebih kecil dari harga beli.</Helper
+          >
+        {:else if !validHargaJual && harga_jual_per_satuan > 100 && isPercentage}
+          <Helper class="mt-2" color="red"
+            >Harga jual (% dari harga beli) tidak valid.</Helper
           >
         {/if}
       </Label>
