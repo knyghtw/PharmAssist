@@ -273,6 +273,12 @@
     tanggal_expired = null;
     jumlah_stok = 0;
     isPercentage = false;
+    validNamaPBF = true;
+    validNoBatch = true;
+    validHargaBeli = true;
+    validHargaJual = true;
+    validTglExp = true;
+    validStok = true;
   }
 
   function checkInput(input_name) {
@@ -318,7 +324,7 @@
           !harga_jual_per_satuan ||
           harga_jual_per_satuan < 1 ||
           (harga_beli_per_satuan > harga_jual_per_satuan && !isPercentage) ||
-          harga_jual_per_satuan > 100 && isPercentage
+          (harga_jual_per_satuan > 100 && isPercentage)
         ) {
           validHargaJual = false;
           hargaJualCheck = "red";
@@ -771,7 +777,7 @@
       }}
     >
       <h3 class="text-xl font-medium text-gray-900 dark:text-white">
-        Edit Data Stok
+        Edit Data Stok Obat
       </h3>
       <hr />
       <Label class="space-y-2">
@@ -783,14 +789,22 @@
           name="nama_barang"
           placeholder="Paracetamol"
           class="font-normal"
+          bind:color={namaBarangCheck}
           onfocusout={() => {
             let normalizebrg = nama_barang.trimEnd();
             let normalizepbf = nama_pbf.trimEnd();
             nama_barang = normalizebrg;
             nama_pbf = normalizepbf;
+            getExactItemByName(normalizebrg, normalizepbf);
+          }}
+          oninput={() => {
+            checkInput("nama_barang");
           }}
           required
         />
+        {#if !validNamaBarang}
+          <Helper class="mt-2" color="red">Nama barang wajib diisi.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
@@ -801,14 +815,22 @@
           name="nama_pbf"
           placeholder="PT ABC"
           class="font-normal"
+          bind:color={namaPBFCheck}
           onfocusout={() => {
             let normalizebrg = nama_barang.trimEnd();
             let normalizepbf = nama_pbf.trimEnd();
             nama_barang = normalizebrg;
             nama_pbf = normalizepbf;
+            getExactItemByName(normalizebrg, normalizepbf);
+          }}
+          oninput={() => {
+            checkInput("nama_pbf");
           }}
           required
         />
+        {#if !validNamaPBF}
+          <Helper class="mt-2" color="red">Nama PBF wajib diisi.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Nomor Batch</span>
@@ -818,12 +840,29 @@
           name="nomor_batch"
           placeholder="ABCDEF12345"
           class="font-normal"
+          bind:color={noBatchCheck}
+          oninput={() => {
+            checkInput("nomor_batch");
+          }}
           required
         />
+        {#if !validNoBatch}
+          <Helper class="mt-2" color="red">Nomor batch wajib diisi.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Tanggal Expired</span>
-        <Datepicker bind:value={tanggal_expired} required />
+        <Datepicker
+          bind:value={tanggal_expired}
+          bind:color={tglExpCheck}
+          oninput={() => {
+            checkInput("tgl_exp");
+          }}
+          required
+        />
+        {#if !validTglExp}
+          <Helper class="mt-2" color="red">Tanggal expired wajib diisi.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Jumlah Stok</span>
@@ -833,8 +872,17 @@
           name="jumlah_stok"
           placeholder="50"
           class="font-normal"
+          bind:color={stokCheck}
+          oninput={() => {
+            checkInput("jumlah_stok");
+          }}
           required
         />
+        {#if !validStok}
+          <Helper class="mt-2" color="red">Jumlah stok wajib diisi.</Helper>
+        {:else if !validStok && jumlah_stok < 1}
+          <Helper class="mt-2" color="red">Jumlah stok tidak valid.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Beli</span>
@@ -844,8 +892,17 @@
           name="harga_beli_per_satuan"
           placeholder="10000"
           class="font-normal"
+          bind:color={hargaBeliCheck}
+          oninput={() => {
+            checkInput("harga_beli");
+          }}
           required
         />
+        {#if !validHargaBeli && !harga_beli_per_satuan}
+          <Helper class="mt-2" color="red">Harga beli wajib diisi.</Helper>
+        {:else if !validHargaBeli && harga_beli_per_satuan < 1}
+          <Helper class="mt-2" color="red">Harga beli tidak valid.</Helper>
+        {/if}
       </Label>
       <Label class="space-y-2">
         <span class="text-gray-900">Harga Jual</span>
@@ -856,12 +913,34 @@
             name="harga_jual_per_satuan"
             placeholder="11000"
             class="font-normal flex-1"
+            bind:color={hargaJualCheck}
+            oninput={() => {
+              checkInput("harga_jual");
+            }}
             required
           />
           <div class="flex flex-none">
-            <Checkbox bind:checked={isPercentage}>%</Checkbox>
+            <Checkbox
+              bind:checked={isPercentage}
+              onchange={() => {
+                checkInput("harga_jual");
+              }}>%</Checkbox
+            >
           </div>
         </div>
+        {#if !validHargaJual && !harga_jual_per_satuan}
+          <Helper class="mt-2" color="red">Harga jual wajib diisi.</Helper>
+        {:else if !validHargaJual && harga_jual_per_satuan < 1}
+          <Helper class="mt-2" color="red">Harga jual tidak valid.</Helper>
+        {:else if !validHargaJual && harga_beli_per_satuan > harga_jual_per_satuan && !isPercentage}
+          <Helper class="mt-2" color="red"
+            >Harga jual tidak boleh lebih kecil dari harga beli.</Helper
+          >
+        {:else if !validHargaJual && harga_jual_per_satuan > 100 && isPercentage}
+          <Helper class="mt-2" color="red"
+            >Harga jual (% dari harga beli) tidak valid.</Helper
+          >
+        {/if}
       </Label>
       <hr />
       <div class="flex flex-row justify-between space-x-4">
