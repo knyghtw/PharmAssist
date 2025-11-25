@@ -949,7 +949,7 @@
         >
         <Button
           class="flex flex-1"
-          type="submit"
+          type="button"
           color="alternative"
           onclick={() => {
             clickEditStokModal = false;
