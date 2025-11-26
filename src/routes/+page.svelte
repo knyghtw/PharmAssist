@@ -367,8 +367,10 @@
       tanggal_expired &&
       +jumlah_stok > 1
     ) {
+      console.log("input false");
       isBtnDisabled = false;
     } else {
+      console.log("input good");
       isBtnDisabled = true;
     }
   }
@@ -781,32 +783,6 @@
       </h3>
       <hr />
       <Label class="space-y-2">
-        <span class="text-gray-900">Nama Obat</span>
-        <Input
-          bind:value={nama_barang}
-          data={suggestionsBarang}
-          type="text"
-          name="nama_barang"
-          placeholder="Paracetamol"
-          class="font-normal"
-          bind:color={namaBarangCheck}
-          onfocusout={() => {
-            let normalizebrg = nama_barang.trimEnd();
-            let normalizepbf = nama_pbf.trimEnd();
-            nama_barang = normalizebrg;
-            nama_pbf = normalizepbf;
-            getExactItemByName(normalizebrg, normalizepbf);
-          }}
-          oninput={() => {
-            checkInput("nama_barang");
-          }}
-          required
-        />
-        {#if !validNamaBarang}
-          <Helper class="mt-2" color="red">Nama barang wajib diisi.</Helper>
-        {/if}
-      </Label>
-      <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
         <Input
           bind:value={nama_pbf}
@@ -833,6 +809,32 @@
         {/if}
       </Label>
       <Label class="space-y-2">
+        <span class="text-gray-900">Nama Obat</span>
+        <Input
+          bind:value={nama_barang}
+          data={suggestionsBarang}
+          type="text"
+          name="nama_barang"
+          placeholder="Paracetamol"
+          class="font-normal"
+          bind:color={namaBarangCheck}
+          onfocusout={() => {
+            let normalizebrg = nama_barang.trimEnd();
+            let normalizepbf = nama_pbf.trimEnd();
+            nama_barang = normalizebrg;
+            nama_pbf = normalizepbf;
+            getExactItemByName(normalizebrg, normalizepbf);
+          }}
+          oninput={() => {
+            checkInput("nama_barang");
+          }}
+          required
+        />
+        {#if !validNamaBarang}
+          <Helper class="mt-2" color="red">Nama barang wajib diisi.</Helper>
+        {/if}
+      </Label>
+      <Label class="space-y-2">
         <span class="text-gray-900">Nomor Batch</span>
         <Input
           bind:value={nomor_batch}
@@ -855,9 +857,9 @@
         <Datepicker
           bind:value={tanggal_expired}
           bind:color={tglExpCheck}
-          oninput={() => {
+          onselect={() => {
             checkInput("tgl_exp");
-          }}
+          }}          
           required
         />
         {#if !validTglExp}
@@ -978,42 +980,14 @@
       </h3>
       <hr />
       <Label class="space-y-2">
-        <span class="text-gray-900">Nama Obat</span>
-        <Input
-          bind:value={nama_barang}
-          type="text"
-          name="nama_barang"
-          placeholder="Paracetamol"
-          class="font-normal"
-          data={suggestionsBarang}
-          bind:color={namaBarangCheck}
-          onfocusout={() => {
-            if (nama_barang) {
-              let normalizebrg = nama_barang.trimEnd();
-              let normalizepbf = nama_pbf.trimEnd();
-              nama_barang = normalizebrg;
-              nama_pbf = normalizepbf;
-              getExactItemByName(normalizebrg, normalizepbf);
-            }
-          }}
-          oninput={() => {
-            checkInput("nama_barang");
-          }}
-          required
-        />
-        {#if !validNamaBarang}
-          <Helper class="mt-2" color="red">Nama barang wajib diisi.</Helper>
-        {/if}
-      </Label>
-      <Label class="space-y-2">
         <span class="text-gray-900">PBF</span>
         <Input
           bind:value={nama_pbf}
+          data={suggestionsPBF}
           type="text"
           name="nama_pbf"
           placeholder="PT ABC"
           class="font-normal"
-          data={suggestionsPBF}
           bind:color={namaPBFCheck}
           onfocusout={() => {
             if (nama_pbf) {
@@ -1031,6 +1005,34 @@
         />
         {#if !validNamaPBF}
           <Helper class="mt-2" color="red">Nama PBF wajib diisi.</Helper>
+        {/if}
+      </Label>
+      <Label class="space-y-2">
+        <span class="text-gray-900">Nama Obat</span>
+        <Input
+          bind:value={nama_barang}
+          data={suggestionsBarang}
+          type="text"
+          name="nama_barang"
+          placeholder="Paracetamol"
+          class="font-normal"
+          bind:color={namaBarangCheck}
+          onfocusout={() => {
+            if (nama_barang) {
+              let normalizebrg = nama_barang.trimEnd();
+              let normalizepbf = nama_pbf.trimEnd();
+              nama_barang = normalizebrg;
+              nama_pbf = normalizepbf;
+              getExactItemByName(normalizebrg, normalizepbf);
+            }
+          }}
+          oninput={() => {
+            checkInput("nama_barang");
+          }}
+          required
+        />
+        {#if !validNamaBarang}
+          <Helper class="mt-2" color="red">Nama barang wajib diisi.</Helper>
         {/if}
       </Label>
       <Label class="space-y-2">

@@ -1,6 +1,6 @@
 [package]
 name = "pharmassist"
-version = "0.1.2"
+version = "0.1.3"
 description = "Aplikasi Manajemen Stok Obat Apotek"
 authors = ["knyghtw"]
 edition = "2021"
